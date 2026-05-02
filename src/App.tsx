@@ -89,10 +89,12 @@ function DetailPanel({
   entry,
   dismissed,
   onDismiss,
+  isLandscape,
 }: {
   entry: Entry | null;
   dismissed: boolean;
   onDismiss: () => void;
+  isLandscape: boolean;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
@@ -107,6 +109,7 @@ function DetailPanel({
   const dismissedTop = () => window.innerHeight + 20;
 
   useEffect(() => {
+    if (isLandscape) return;
     if (panelRef.current) {
       panelRef.current.style.transition = 'none';
       panelRef.current.style.top = dismissedTop() + 'px';
@@ -114,6 +117,7 @@ function DetailPanel({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (isLandscape) return;
     if (!panelRef.current) return;
     if (dismissed) {
       const target = dismissedTop();
@@ -122,20 +126,25 @@ function DetailPanel({
       if (vel > 0) {
         const currentTop = parseFloat(panelRef.current.style.top) || defaultTop();
         const duration = Math.max(80, Math.min(400, Math.round((target - currentTop) / vel)));
-        panelRef.current.style.transition = `top ${duration}ms linear`;
+        panelRef.current.style.transition = `top ${duration}ms linear, --panel-accent 0.4s ease`;
       } else {
-        panelRef.current.style.transition = 'top 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+        panelRef.current.style.transition = 'top 0.35s cubic-bezier(0.4, 0, 0.2, 1), --panel-accent 0.4s ease';
       }
       panelRef.current.style.top = target + 'px';
     } else {
-      panelRef.current.style.transition = 'top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      panelRef.current.style.transition = 'top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), --panel-accent 0.4s ease';
       panelRef.current.style.top = defaultTop() + 'px';
     }
-  }, [dismissed]); // entry and selectKey intentionally absent — only reposition on dismissed state change
+  }, [dismissed, isLandscape]); // entry intentionally absent — only reposition on dismissed/orientation change
 
   useEffect(() => {
     const handler = () => {
       if (!panelRef.current) return;
+      if (isLandscape) {
+        panelRef.current.style.top = '';
+        panelRef.current.style.transition = '';
+        return;
+      }
       if (dismissed) {
         panelRef.current.style.top = dismissedTop() + 'px';
       } else {
@@ -146,7 +155,19 @@ function DetailPanel({
     };
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
-  }, [dismissed]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dismissed, isLandscape]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!panelRef.current) return;
+    if (isLandscape) {
+      panelRef.current.style.top = '';
+      panelRef.current.style.transition = '';
+    } else {
+      panelRef.current.style.transition = 'none';
+      panelRef.current.style.top = (dismissed ? dismissedTop() : defaultTop()) + 'px';
+      panelRef.current.getBoundingClientRect(); // force reflow so transition:none commits before next paint
+    }
+  }, [isLandscape]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -184,23 +205,32 @@ function DetailPanel({
       swipeVelocity.current = Math.max(0, velocity);
       onDismiss();
     } else {
-      panelRef.current!.style.transition = 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+      panelRef.current!.style.transition = 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1), --panel-accent 0.4s ease';
     }
   }, [onDismiss]);
+
+  const isOpen = isLandscape && !dismissed;
 
   return (
     <div
       ref={panelRef}
-      className={`detail-panel${dragging ? ' detail-panel--dragging' : ''}`}
+      className={[
+        'detail-panel',
+        dragging ? 'detail-panel--dragging' : '',
+        isOpen ? 'detail-panel--open' : '',
+      ].filter(Boolean).join(' ')}
       style={{ '--panel-accent': entry ? darkenHex(entry.hex) : '#1c1c1c' } as React.CSSProperties}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      onPointerDown={isLandscape ? undefined : handlePointerDown}
+      onPointerMove={isLandscape ? undefined : handlePointerMove}
+      onPointerUp={isLandscape ? undefined : handlePointerUp}
+      onPointerCancel={isLandscape ? undefined : handlePointerUp}
     >
-      <div className="detail-panel__grabber-zone">
-        <div className="detail-panel__grabber" />
-      </div>
+      {!isLandscape && (
+        <div className="detail-panel__grabber-zone">
+          <div className="detail-panel__grabber" />
+        </div>
+      )}
+      <button className="detail-panel__close" onClick={onDismiss} aria-label="Close">×</button>
       <div className="detail-panel__content">
         {entry && (
           <>
@@ -325,6 +355,7 @@ function AlphaIndex({
 
 function App() {
   const rowHeight = useRowHeight();
+  const landscape = useLandscape();
   const listRef = useListRef(null);
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 200);
@@ -369,7 +400,7 @@ function App() {
   }, [debouncedQuery, listRef, filteredEntries]);
 
   return (
-    <div className="App">
+    <div className={`App${landscape && !sheetDismissed ? ' App--panel-open' : ''}`}>
       <SearchBar query={query} onChange={setQuery} />
       <div className="list-wrapper">
         <List
@@ -395,6 +426,7 @@ function App() {
         entry={selectedEntry}
         dismissed={sheetDismissed}
         onDismiss={() => setSheetDismissed(true)}
+        isLandscape={landscape}
       />
     </div>
   );
