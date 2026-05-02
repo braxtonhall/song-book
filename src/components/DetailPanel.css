@@ -46,7 +46,7 @@
 
 .detail-panel__content {
 	padding: 8px 20px 32px;
-	overflow: hidden;
+	overflow-y: auto;
 	flex: 1;
 	min-height: 0;
 	display: flex;
@@ -81,12 +81,111 @@
 	white-space: nowrap;
 }
 
-.detail-panel__details {
+.detail-panel__album {
 	color: rgba(255, 255, 255, 0.4);
 	font-size: 13px;
 	margin: 0;
 	margin-top: 8px;
 	line-height: 1.5;
+}
+
+.detail-panel__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 0;
+	margin-top: 12px;
+	color: rgba(255, 255, 255, 0.45);
+	font-size: 13px;
+}
+
+.detail-panel__meta span:not(:last-child)::after {
+	content: "·";
+	margin: 0 8px;
+	opacity: 0.4;
+}
+
+.detail-panel__badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 10px;
+}
+
+.detail-panel__badge {
+	display: inline-block;
+	padding: 3px 8px;
+	border-radius: 4px;
+	background: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.65);
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 0.02em;
+}
+
+.detail-panel__badge--duration {
+	color: rgba(255, 255, 255, 0.8);
+}
+
+.detail-panel__section {
+	margin-top: 20px;
+}
+
+.detail-panel__section-title {
+	color: rgba(255, 255, 255, 0.35);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	margin: 0 0 10px;
+}
+
+.detail-panel__difficulties {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.detail-panel__diff-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.detail-panel__diff-label {
+	color: rgba(255, 255, 255, 0.6);
+	font-size: 13px;
+	flex-shrink: 0;
+}
+
+.detail-panel__diff-dots {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+}
+
+.detail-panel__diff-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.15);
+	flex-shrink: 0;
+}
+
+.detail-panel__diff-dot--filled {
+	background: rgba(255, 255, 255, 0.75);
+}
+
+.detail-panel__diff-dot--red {
+	background: rgba(255, 0, 0, 0.75);
+}
+
+.detail-panel__diff-none {
+	color: rgba(255, 255, 255, 0.2);
+	font-size: 10px;
+	font-weight: 300;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
 }
 
 .detail-panel__close {

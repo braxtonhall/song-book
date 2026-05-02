@@ -1,0 +1,78 @@
+.sort-header {
+	display: flex;
+	align-items: center;
+	padding: 0 8px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+	box-sizing: border-box;
+}
+
+.sort-button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: none;
+	border: none;
+	color: rgba(255, 255, 255, 0.4);
+	font-size: 13px;
+	font-family: inherit;
+	cursor: pointer;
+	padding: 6px 10px;
+	border-radius: 6px;
+	transition:
+		background 0.12s,
+		color 0.12s;
+	letter-spacing: 0.01em;
+}
+
+.sort-button:hover {
+	background: rgba(255, 255, 255, 0.06);
+	color: rgba(255, 255, 255, 0.65);
+}
+
+.sort-icon {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+	color: inherit;
+}
+
+.sort-menu {
+	position: fixed;
+	background: #242424;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+	z-index: 100;
+	min-width: 160px;
+}
+
+.sort-menu-item {
+	display: block;
+	width: 100%;
+	padding: 12px 16px;
+	background: none;
+	border: none;
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 14px;
+	font-family: inherit;
+	cursor: pointer;
+	text-align: left;
+	transition:
+		background 0.1s,
+		color 0.1s;
+}
+
+.sort-menu-item:hover {
+	background: rgba(255, 255, 255, 0.06);
+	color: #fff;
+}
+
+.sort-menu-item--active {
+	color: #ffb300;
+}
+
+.sort-menu-item--active:hover {
+	background: rgba(255, 179, 0, 0.08);
+	color: #ffb300;
+}

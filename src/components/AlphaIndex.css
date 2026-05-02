@@ -119,4 +119,12 @@
 	.App--panel-open .alpha-wrapper {
 		right: calc(var(--landscape-panel-width) + 8px);
 	}
+
+	.alpha-bubble {
+		transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.App--panel-open .alpha-bubble {
+		right: calc(var(--landscape-panel-width) + 44px);
+	}
 }

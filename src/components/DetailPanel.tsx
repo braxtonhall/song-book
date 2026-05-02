@@ -2,6 +2,37 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Entry } from '../stub/entries';
 import './DetailPanel.css';
 
+const RATING_LABELS = ['Unrated', 'Family Friendly', 'Supervision Recommended'];
+const DIFFICULTY_LABELS = ['Warmup', 'Apprentice', 'Solid', 'Moderate', 'Challenging', 'Nightmare', 'Impossible'];
+
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.round(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function DifficultyDots({ value }: { value: number | null }) {
+  if (value === null) return <span className="detail-panel__diff-none">No Part</span>;
+  const diffDotFillClass = value === 6 ? ' detail-panel__diff-dot--red' : ' detail-panel__diff-dot--filled';
+  return (
+    <span className="detail-panel__diff-dots" aria-label={`Difficulty of ${DIFFICULTY_LABELS[value]}`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span key={i} className={`detail-panel__diff-dot${i < value ? diffDotFillClass : ''}`} />
+      ))}
+    </span>
+  );
+}
+
+function DifficultyRow({ label, value }: { label: string; value: number | null }) {
+  return (
+    <div className="detail-panel__diff-row">
+      <span className="detail-panel__diff-label">{label}</span>
+      <DifficultyDots value={value} />
+    </div>
+  );
+}
+
 function darkenHex(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -25,6 +56,7 @@ export function DetailPanel({
   const dragStartPanelY = useRef(0);
   const moveHistory = useRef<{ y: number; t: number }[]>([]);
   const swipeVelocity = useRef(0);
+  const isDragging = useRef(false);
   const [dragging, setDragging] = useState(false);
 
   const MIN_TOP = 80;
@@ -96,6 +128,7 @@ export function DetailPanel({
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     panelRef.current?.setPointerCapture(e.pointerId);
+    isDragging.current = true;
     setDragging(true);
     dragStartY.current = e.clientY;
     moveHistory.current = [{ y: e.clientY, t: e.timeStamp }];
@@ -106,18 +139,18 @@ export function DetailPanel({
   }, []);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!panelRef.current?.hasPointerCapture(e.pointerId)) return;
+    if (!isDragging.current) return;
     const newTop = Math.max(MIN_TOP, dragStartPanelY.current + (e.clientY - dragStartY.current));
     panelRef.current!.style.top = newTop + 'px';
     const history = moveHistory.current;
     history.push({ y: e.clientY, t: e.timeStamp });
-    // Keep only the last 80ms
     const cutoff = e.timeStamp - 80;
     moveHistory.current = history.filter(p => p.t >= cutoff);
   }, []);
 
   const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!panelRef.current?.hasPointerCapture(e.pointerId)) return;
+    if (!isDragging.current) return;
+    isDragging.current = false;
     setDragging(false);
     const history = moveHistory.current;
     const oldest = history[0];
@@ -133,6 +166,16 @@ export function DetailPanel({
     }
   }, [onDismiss]);
 
+  const handlePointerCancel = useCallback(() => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setDragging(false);
+    if (panelRef.current) {
+      panelRef.current.style.transition = 'top 0.35s cubic-bezier(0.4, 0, 0.2, 1), --panel-accent 0.4s ease';
+      panelRef.current.style.top = defaultTop() + 'px';
+    }
+  }, []);
+
   const isOpen = isLandscape && !dismissed;
 
   return (
@@ -147,7 +190,7 @@ export function DetailPanel({
       onPointerDown={isLandscape ? undefined : handlePointerDown}
       onPointerMove={isLandscape ? undefined : handlePointerMove}
       onPointerUp={isLandscape ? undefined : handlePointerUp}
-      onPointerCancel={isLandscape ? undefined : handlePointerUp}
+      onPointerCancel={isLandscape ? undefined : handlePointerCancel}
     >
       {!isLandscape && (
         <div className="detail-panel__grabber-zone">
@@ -161,7 +204,41 @@ export function DetailPanel({
             <div className="detail-panel__avatar" style={{ backgroundColor: entry.hex }} />
             <h2 className="detail-panel__title">{entry.song}</h2>
             <p className="detail-panel__artist">{entry.artist}</p>
-            <p className="detail-panel__details">{entry.details}</p>
+            <p className="detail-panel__album">{entry.albumName}</p>
+
+            <div className="detail-panel__meta">
+              {entry.year && <span>{entry.year}</span>}
+              {entry.genre && <span>{entry.genre}</span>}
+              {entry.source && <span>{entry.source}</span>}
+            </div>
+
+            <div className="detail-panel__badges">
+              <span className="detail-panel__badge detail-panel__badge--duration">{formatDuration(entry.duration)}</span>
+              {entry.rating > 0 && <span className="detail-panel__badge">{RATING_LABELS[entry.rating]}</span>}
+              {entry.multitracks && <span className="detail-panel__badge">Multitracks</span>}
+              {entry.cover && <span className="detail-panel__badge">Cover</span>}
+            </div>
+
+            <div className="detail-panel__section">
+              <h3 className="detail-panel__section-title">Difficulty</h3>
+              <div className="detail-panel__difficulties">
+                <DifficultyRow label="Guitar" value={entry.guitarDifficulty} />
+                <DifficultyRow label="Bass" value={entry.bassDifficulty} />
+                <DifficultyRow label="Drums" value={entry.drumDifficulty} />
+                <DifficultyRow
+                  label={entry.vocalParts && entry.vocalParts > 1 ? `Vocals ×${entry.vocalParts}` : 'Vocals'}
+                  value={entry.vocalsDifficulty}
+                />
+                <DifficultyRow label="Keys" value={entry.keysDifficulty} />
+                <DifficultyRow label="Pro Guitar" value={entry.proGuitarDifficulty} />
+                <DifficultyRow label="Pro Bass" value={entry.proBassDifficulty} />
+                <DifficultyRow label="Pro Keys" value={entry.proKeysDifficulty} />
+                <div className="detail-panel__diff-row">
+                  <span className="detail-panel__diff-label">Band</span>
+                  <DifficultyDots value={entry.bandDifficulty} />
+                </div>
+              </div>
+            </div>
           </>
         )}
       </div>

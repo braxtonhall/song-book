@@ -11,7 +11,6 @@ export const ENTRIES = Array.from({length: 10_000}).map((_, index) => ({
 	sortSong: `${LETTERS[Math.floor((index / 10_000) * LETTERS.length)]} Song Name ${index}`,
 	artist: `${LETTERS[Math.floor(((10_000 - 1 - index) / 10_000) * LETTERS.length)]} Artist Name ${10_000 - index}`,
 	sortArtist: `${LETTERS[Math.floor(((10_000 - 1 - index) / 10_000) * LETTERS.length)]} Artist Name ${10_000 - index}`,
-	details: `${stringToColour(LETTERS[index % LETTERS.length])} details ${LETTERS[(index * 47) % LETTERS.length]}`,
 	genre: `Genre ${String(hashString(String(index * 13)))[0]}`,
 	source: `Source ${String(hashString(String(index * 19)))[0]}`,
 	year: 2012,
@@ -32,8 +31,11 @@ export const ENTRIES = Array.from({length: 10_000}).map((_, index) => ({
 	multitracks: index % 2 === 0,
 	cover: index % 100 === 0,
 	rating: index % 3,
-	duration: 60000 + index * 13 * 7 * 60000,
+	duration: 60000 + ((index * 13 * 7) % (60_000 * 5)),
 }));
+
+export const getEntries = (): Promise<Entry[]> =>
+	new Promise<Entry[]>((resolve) => setTimeout(resolve, Math.random() * 3_000, ENTRIES));
 
 export const LETTERS_ARRAY = Array.from(new Set(ENTRIES.map((entry) => entry.song[0])))
 	.filter(Boolean)
