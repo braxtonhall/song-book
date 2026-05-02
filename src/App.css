@@ -1,0 +1,281 @@
+:root {
+	--search-height: 52px;
+}
+
+.App {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	overflow: hidden;
+	background: #121212;
+}
+
+/* ── Search bar ── */
+
+.search-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 0 16px;
+	height: var(--search-height);
+	flex-shrink: 0;
+	background: #1c1c1c;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.search-icon {
+	width: 18px;
+	height: 18px;
+	color: rgba(255, 255, 255, 0.35);
+	flex-shrink: 0;
+}
+
+.search-input {
+	flex: 1;
+	background: none;
+	border: none;
+	outline: none;
+	color: #fff;
+	font-size: 15px;
+	font-family: inherit;
+	caret-color: #ffb300;
+}
+
+.search-input::placeholder {
+	color: rgba(255, 255, 255, 0.3);
+}
+
+/* Hide native browser clear button on search inputs */
+.search-input::-webkit-search-cancel-button {
+	display: none;
+}
+
+.search-clear {
+	background: none;
+	border: none;
+	color: rgba(255, 255, 255, 0.4);
+	font-size: 13px;
+	cursor: pointer;
+	padding: 4px;
+	line-height: 1;
+	flex-shrink: 0;
+	transition: color 0.12s;
+}
+
+.search-clear:hover {
+	color: #fff;
+}
+
+/* ── List wrapper ── */
+
+.list-wrapper {
+	flex: 1;
+	min-height: 0;
+}
+
+/* Scrollbar gutter */
+.list-wrapper *::-webkit-scrollbar {
+	width: 8px;
+}
+
+.list-wrapper *::-webkit-scrollbar-track {
+	background: #1c1c1c;
+}
+
+.list-wrapper *::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 3px;
+	border: 2px solid #1c1c1c;
+}
+
+.list-wrapper *::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.35);
+}
+
+.list-wrapper * {
+	scrollbar-gutter: stable;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(255, 255, 255, 0.2) #1c1c1c;
+}
+
+/* ── Alpha index scrubber ── */
+
+.alpha-wrapper {
+	position: fixed;
+	top: var(--search-height);
+	right: 8px;
+	bottom: 0;
+	pointer-events: none;
+	z-index: 100;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.alpha-bubble {
+	position: fixed;
+	right: 44px;
+	width: 58px;
+	height: 58px;
+	border-radius: 50% 4px 50% 50%;
+	background: #ffb300;
+	color: #1a1100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 30px;
+	font-weight: 800;
+	letter-spacing: -1px;
+	pointer-events: none;
+	animation: bubble-in 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+	transition: top 0.1s ease;
+	box-shadow: 0 4px 20px rgba(255, 179, 0, 0.4);
+}
+
+@keyframes bubble-in {
+	from {
+		opacity: 0;
+		scale: 0.4;
+	}
+
+	to {
+		opacity: 1;
+		scale: 1;
+	}
+}
+
+.alpha-zone {
+	pointer-events: all;
+	display: flex;
+	align-items: center;
+	padding: 0 0 0 32px;
+	cursor: pointer;
+}
+
+.alpha-strip {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	height: auto;
+	box-sizing: border-box;
+	padding: 8px 5px;
+	overflow: hidden;
+	user-select: none;
+	touch-action: none;
+	cursor: pointer;
+	margin-right: 2px;
+	border-radius: 4px;
+	transition:
+		background 0.15s,
+		opacity 0.2s ease;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.alpha-strip--visible {
+	opacity: 1;
+	pointer-events: all;
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.alpha-strip--active {
+	background: rgba(255, 255, 255, 0.09);
+}
+
+.alpha-letter {
+	position: relative;
+	z-index: 1;
+	display: block;
+	font-size: 10px;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.38);
+	text-align: center;
+	width: 16px;
+	line-height: 1;
+	transition:
+		color 0.08s,
+		transform 0.08s;
+}
+
+.alpha-letter--current {
+	color: rgba(255, 255, 255, 0.85);
+	transform: scale(1.15);
+}
+
+.alpha-letter--active {
+	color: #ffb300;
+	transform: scale(1.25);
+}
+
+.alpha-letter--missing {
+	opacity: 0.2;
+}
+
+.entry-row {
+	display: flex;
+	align-items: center;
+	padding: 0 16px;
+	gap: 12px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+	cursor: pointer;
+	box-sizing: border-box;
+}
+
+.entry-row:hover {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.entry-avatar {
+	height: calc(100% - 16px);
+	aspect-ratio: 1;
+	border-radius: 4px;
+	flex-shrink: 0;
+}
+
+.entry-text {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	overflow: hidden;
+}
+
+.entry-title {
+	color: #fff;
+	font-size: 15px;
+	font-weight: 500;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.entry-artist {
+	color: rgba(255, 255, 255, 0.5);
+	font-size: 12px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	margin-top: 2px;
+}
+
+.entry-index {
+	color: rgba(255, 255, 255, 0.4);
+	font-size: 13px;
+	flex-shrink: 0;
+}
+
+@media (orientation: portrait) {
+	.entry-title {
+		font-size: 18px;
+	}
+
+	.entry-artist {
+		font-size: 14px;
+	}
+
+	.entry-index {
+		font-size: 15px;
+	}
+}
