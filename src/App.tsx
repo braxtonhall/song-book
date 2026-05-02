@@ -88,9 +88,10 @@ function DetailPanel({
   onDismiss: () => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const grabberRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
   const dragStartPanelY = useRef(0);
+  const moveHistory = useRef<{ y: number; t: number }[]>([]);
+  const swipeVelocity = useRef(0);
   const [dragging, setDragging] = useState(false);
 
   const MIN_TOP = 80;
@@ -108,8 +109,17 @@ function DetailPanel({
   useEffect(() => {
     if (!panelRef.current) return;
     if (dismissed) {
-      panelRef.current.style.transition = 'top 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
-      panelRef.current.style.top = dismissedTop() + 'px';
+      const target = dismissedTop();
+      const vel = swipeVelocity.current;
+      swipeVelocity.current = 0;
+      if (vel > 0) {
+        const currentTop = parseFloat(panelRef.current.style.top) || defaultTop();
+        const duration = Math.max(80, Math.min(400, Math.round((target - currentTop) / vel)));
+        panelRef.current.style.transition = `top ${duration}ms linear`;
+      } else {
+        panelRef.current.style.transition = 'top 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+      }
+      panelRef.current.style.top = target + 'px';
     } else {
       panelRef.current.style.transition = 'top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
       panelRef.current.style.top = defaultTop() + 'px';
@@ -133,9 +143,10 @@ function DetailPanel({
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
-    grabberRef.current?.setPointerCapture(e.pointerId);
+    panelRef.current?.setPointerCapture(e.pointerId);
     setDragging(true);
     dragStartY.current = e.clientY;
+    moveHistory.current = [{ y: e.clientY, t: e.timeStamp }];
     const currentTop = parseFloat(getComputedStyle(panelRef.current!).top);
     panelRef.current!.style.top = currentTop + 'px';
     panelRef.current!.style.transition = 'none';
@@ -143,16 +154,27 @@ function DetailPanel({
   }, []);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!grabberRef.current?.hasPointerCapture(e.pointerId)) return;
+    if (!panelRef.current?.hasPointerCapture(e.pointerId)) return;
     const newTop = Math.max(MIN_TOP, dragStartPanelY.current + (e.clientY - dragStartY.current));
     panelRef.current!.style.top = newTop + 'px';
+    const history = moveHistory.current;
+    history.push({ y: e.clientY, t: e.timeStamp });
+    // Keep only the last 80ms
+    const cutoff = e.timeStamp - 80;
+    moveHistory.current = history.filter(p => p.t >= cutoff);
   }, []);
 
   const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!grabberRef.current?.hasPointerCapture(e.pointerId)) return;
+    if (!panelRef.current?.hasPointerCapture(e.pointerId)) return;
     setDragging(false);
+    const history = moveHistory.current;
+    const oldest = history[0];
+    const newest = history[history.length - 1];
+    const elapsed = oldest && newest ? newest.t - oldest.t : 0;
+    const velocity = elapsed > 0 ? (newest.y - oldest.y) / elapsed : 0; // px/ms, positive = downward
     const finalTop = parseFloat(panelRef.current!.style.top);
-    if (finalTop > window.innerHeight * DISMISS_THRESHOLD) {
+    if (finalTop > window.innerHeight * DISMISS_THRESHOLD || velocity > 0.5) {
+      swipeVelocity.current = Math.max(0, velocity);
       onDismiss();
     } else {
       panelRef.current!.style.transition = 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -160,15 +182,15 @@ function DetailPanel({
   }, [onDismiss]);
 
   return (
-    <div ref={panelRef} className={`detail-panel${dragging ? ' detail-panel--dragging' : ''}`}>
-      <div
-        ref={grabberRef}
-        className="detail-panel__grabber-zone"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-      >
+    <div
+      ref={panelRef}
+      className={`detail-panel${dragging ? ' detail-panel--dragging' : ''}`}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+    >
+      <div className="detail-panel__grabber-zone">
         <div className="detail-panel__grabber" />
       </div>
       <div className="detail-panel__content">
