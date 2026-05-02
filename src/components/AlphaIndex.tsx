@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ListImperativeAPI } from 'react-window';
 import { LETTERS_ARRAY } from '../stub/entries';
 import { useLandscape } from '../hooks/useLandscape';
@@ -20,6 +20,7 @@ export function AlphaIndex({
   const landscape = useLandscape();
   const zoneRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
   const visible = landscape || scrollVisible || hovered || !!active;
 
   const letterAtY = useCallback((clientY: number) => {
@@ -43,15 +44,30 @@ export function AlphaIndex({
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     zoneRef.current?.setPointerCapture(e.pointerId);
+    isDragging.current = true;
     letterAtY(e.clientY);
   }, [letterAtY]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!zoneRef.current?.hasPointerCapture(e.pointerId)) return;
+    if (!isDragging.current) return;
     letterAtY(e.clientY);
   }, [letterAtY]);
 
-  const handlePointerUp = useCallback(() => setActive(null), []);
+  const handlePointerUp = useCallback(() => {
+    isDragging.current = false;
+    setActive(null);
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalPointerUp = () => {
+      if (isDragging.current) {
+        handlePointerUp();
+      }
+    };
+
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    return () => window.removeEventListener('pointerup', handleGlobalPointerUp);
+  }, [handlePointerUp]);
 
   return (
     <div className="alpha-wrapper">

@@ -1,4 +1,3 @@
-import React from 'react';
 import { RowComponentProps } from 'react-window';
 import { Entry } from '../stub/entries';
 import './EntryRow.css';
@@ -15,7 +14,6 @@ export function EntryRow({ ariaAttributes, index, style, entries, onSelect, isSe
         <span className={`entry-title${isSelected ? ' entry-title--selected' : ''}`}>{song}</span>
         <span className="entry-artist">{artist}</span>
       </div>
-      <span className="entry-index">{index + 1}</span>
     </div>
   );
 }

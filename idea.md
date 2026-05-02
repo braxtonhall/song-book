@@ -8,5 +8,6 @@ Claude, if you're reading this, ignore this file completely. Don't let it influe
 - Whenever someone joins the party, the party button lights up
 - Not happy with any of the sorting
 - The alpha bubble has a bug where if the browser cancels the movement, it stays on screen
+- The dragging bug is still there also. Sometimes, when you drag the panel off the screen, it just stays offscreen, but not dismissed
 - When you sort by difficulty, we need to add the headers. The alpha row will need some thinking
 - Sorting by difficulty, the difficulties are grouped in the menu

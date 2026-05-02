@@ -148,7 +148,7 @@ export function DetailPanel({
     moveHistory.current = history.filter(p => p.t >= cutoff);
   }, []);
 
-  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerUp = useCallback(() => {
     if (!isDragging.current) return;
     isDragging.current = false;
     setDragging(false);
@@ -166,15 +166,16 @@ export function DetailPanel({
     }
   }, [onDismiss]);
 
-  const handlePointerCancel = useCallback(() => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    setDragging(false);
-    if (panelRef.current) {
-      panelRef.current.style.transition = 'top 0.35s cubic-bezier(0.4, 0, 0.2, 1), --panel-accent 0.4s ease';
-      panelRef.current.style.top = defaultTop() + 'px';
-    }
-  }, []);
+  useEffect(() => {
+    const handleGlobalPointerUp = () => {
+      if (isDragging.current) {
+        handlePointerUp();
+      }
+    };
+
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    return () => window.removeEventListener('pointerup', handleGlobalPointerUp);
+  }, [handlePointerUp]);
 
   const isOpen = isLandscape && !dismissed;
 
@@ -190,7 +191,7 @@ export function DetailPanel({
       onPointerDown={isLandscape ? undefined : handlePointerDown}
       onPointerMove={isLandscape ? undefined : handlePointerMove}
       onPointerUp={isLandscape ? undefined : handlePointerUp}
-      onPointerCancel={isLandscape ? undefined : handlePointerCancel}
+      onPointerCancel={isLandscape ? undefined : handlePointerUp}
     >
       {!isLandscape && (
         <div className="detail-panel__grabber-zone">

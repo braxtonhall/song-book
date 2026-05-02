@@ -49,12 +49,6 @@
 	margin-top: 2px;
 }
 
-.entry-index {
-	color: rgba(255, 255, 255, 0.4);
-	font-size: 13px;
-	flex-shrink: 0;
-}
-
 @media (orientation: portrait) {
 	.entry-title {
 		font-size: 18px;
@@ -62,9 +56,5 @@
 
 	.entry-artist {
 		font-size: 14px;
-	}
-
-	.entry-index {
-		font-size: 15px;
 	}
 }
