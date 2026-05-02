@@ -282,13 +282,20 @@
 
 /* ── Detail panel (portrait-only bottom sheet) ── */
 
+@property --panel-accent {
+	syntax: "<color>";
+	inherits: false;
+	initial-value: #1c1c1c;
+}
+
 .detail-panel {
 	position: fixed;
 	left: 0;
 	right: 0;
 	height: 100dvh;
 	/* top is managed imperatively via JS */
-	background: #1c1c1c;
+	background: linear-gradient(to bottom, var(--panel-accent) 0%, #1c1c1c 55%);
+	transition: --panel-accent 0.4s ease;
 	border-radius: 16px 16px 0 0;
 	box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
 	border-top: 1px solid rgba(255, 255, 255, 0.08);

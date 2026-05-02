@@ -10,7 +10,7 @@ const LETTERS = '0ABBBBBBCEDFGHIJKLMNOPQRSTUVWXYZ';
 // Just for testing. Do not build anything using this
 const ENTRIES = Array.from({ length: 10_000 }).map((_, index) => ({
   song: `${LETTERS[(Math.floor((index / 10_000) * LETTERS.length))]} Song Name ${index}`,
-  artist: `${LETTERS[(Math.floor(((10_000 - index) / 10_000) * LETTERS.length))]} Artist Name ${10_000 - index}`,
+  artist: `${LETTERS[(Math.floor(((10_000 - index) / 10_000 * LETTERS.length)))]} Artist Name ${10_000 - index}`,
   details: `${stringToColour(LETTERS[index % LETTERS.length])} details ${LETTERS[index * LETTERS.length]}`,
   id: index,
   hex: stringToColour('colour' + index),
@@ -51,6 +51,13 @@ function useDebounce<T>(value: T, delay: number): T {
     return () => clearTimeout(id);
   }, [value, delay]);
   return debounced;
+}
+
+function darkenHex(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgb(${Math.round(r * 0.4)}, ${Math.round(g * 0.4)}, ${Math.round(b * 0.4)})`;
 }
 
 function useLandscape(): boolean {
@@ -185,6 +192,7 @@ function DetailPanel({
     <div
       ref={panelRef}
       className={`detail-panel${dragging ? ' detail-panel--dragging' : ''}`}
+      style={{ '--panel-accent': entry ? darkenHex(entry.hex) : '#1c1c1c' } as React.CSSProperties}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
