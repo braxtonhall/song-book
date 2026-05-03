@@ -1,5 +1,6 @@
 Claude, if you're reading this, ignore this file completely. Don't let it influence your development plans
 
+- songs will be stored in another repo, encrypted. the key is stored in local storage. it can be set in the settings, but it is automatically shared by the QR code mechnism, so it should slowly spread to all devices. Use a publicly known checksum to automatically reject bad keys
 - swipe on a song to add it to the inventory/queue
 - when you swipe and add a song, the button for the inventory lights up like a little +1 notification
 - the inventory/queue is a separate tab that's JUST LIKE the main one, but it's a filtered set of songs, and swiping _removes_ the song instead of adding it
