@@ -202,7 +202,9 @@ export function DetailPanel({
       <div className="detail-panel__content">
         {entry && (
           <>
-            <div className="detail-panel__avatar" style={{ backgroundColor: entry.hex }} />
+            <div className="detail-panel__avatar" style={{ backgroundColor: entry.hex }} >
+              {entry.albumArt && <img src={`${process.env.PUBLIC_URL}/art/${entry.albumArt}.png`}></img>}
+            </div>
             <h2 className="detail-panel__title">{entry.song}</h2>
             <p className="detail-panel__artist">{entry.artist}</p>
             <p className="detail-panel__album">{entry.albumName}</p>
@@ -215,7 +217,8 @@ export function DetailPanel({
 
             <div className="detail-panel__badges">
               <span className="detail-panel__badge detail-panel__badge--duration">{formatDuration(entry.duration)}</span>
-              {entry.rating > 0 && <span className="detail-panel__badge">{RATING_LABELS[entry.rating]}</span>}
+              {/* TODO figure out what all the rating labels are */}
+              {entry.rating > 0 && <span className="detail-panel__badge">{RATING_LABELS[entry.rating] || "Unrated"}</span>}
               {entry.multitracks && <span className="detail-panel__badge">Multitracks</span>}
               {entry.cover && <span className="detail-panel__badge">Cover</span>}
             </div>
