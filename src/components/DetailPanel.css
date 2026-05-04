@@ -20,6 +20,7 @@
 	flex-direction: column;
 	will-change: top;
 	touch-action: none;
+	overscroll-behavior: none;
 	cursor: grab;
 }
 
@@ -47,6 +48,7 @@
 .detail-panel__content {
 	padding: 8px 20px 32px;
 	overflow-y: auto;
+	touch-action: none;
 	flex: 1;
 	min-height: 0;
 	display: flex;

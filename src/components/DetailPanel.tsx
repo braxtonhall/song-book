@@ -144,6 +144,7 @@ export function DetailPanel({
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return;
+    e.preventDefault();
     const newTop = Math.max(MIN_TOP, dragStartPanelY.current + (e.clientY - dragStartY.current));
     panelRef.current!.style.top = newTop + 'px';
     const history = moveHistory.current;
