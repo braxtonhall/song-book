@@ -211,16 +211,38 @@ export function DetailPanel({
               <div className="detail-panel__art-column">
                 <div className="detail-panel__avatar" style={{ backgroundColor: entry.hex }} >
                   {entry.albumArt && <img src={`https://braxtonhall.ca/song-book-resources/art/${entry.albumArt}.png`} alt={`${entry.albumName} album art`} />}
+                  {songPassword && entry.ogg && <AudioPlayer entry={entry} dismissed={dismissed} />}
                 </div>
-                {songPassword && entry.ogg && <AudioPlayer entry={entry} dismissed={dismissed} />}
               </div>
-              <div className="detail-panel__info-column">
-                <h2 className="detail-panel__title">{entry.song}</h2>
-                <p className="detail-panel__artist">{entry.artist}</p>
-                <p className="detail-panel__album">
-                  {entry.albumName}{entry.year ? ` · ${entry.year}` : ''}
-                </p>
+              <div className="detail-panel__diff-columns">
+                <div className="detail-panel__diff-col">
+                  <DifficultyRow label="🎸" value={entry.guitarDifficulty} />
+                  <DifficultyRow label="🎸" value={entry.bassDifficulty} />
+                  <DifficultyRow label="🥁" value={entry.drumDifficulty} />
+                  <DifficultyRow
+                    label={entry.vocalParts && entry.vocalParts > 1 ? `🎤×${entry.vocalParts}` : '🎤'}
+                    value={entry.vocalsDifficulty}
+                  />
+                  <div className="detail-panel__diff-row">
+                    <span className="detail-panel__diff-label">🎵</span>
+                    <DifficultyDots value={entry.bandDifficulty} />
+                  </div>
+                </div>
+                <div className="detail-panel__diff-col">
+                  <DifficultyRow label="🎹" value={entry.keysDifficulty} />
+                  <DifficultyRow label="🎸⁺" value={entry.proGuitarDifficulty} />
+                  <DifficultyRow label="🎸⁺" value={entry.proBassDifficulty} />
+                  <DifficultyRow label="🎹⁺" value={entry.proKeysDifficulty} />
+                </div>
               </div>
+            </div>
+
+            <div className="detail-panel__song-info">
+              <h2 className="detail-panel__title">{entry.song}</h2>
+              <p className="detail-panel__artist">{entry.artist}</p>
+              <p className="detail-panel__album">
+                {entry.albumName}{entry.year ? ` · ${entry.year}` : ''}
+              </p>
             </div>
 
             <div className="detail-panel__meta">
@@ -234,27 +256,6 @@ export function DetailPanel({
               {entry.rating > 0 && <span className="detail-panel__badge">{RATING_LABELS[entry.rating] || "Unrated"}</span>}
               {entry.multitracks && <span className="detail-panel__badge">Multitracks</span>}
               {entry.cover && <span className="detail-panel__badge">Cover</span>}
-            </div>
-
-            <div className="detail-panel__section">
-              <h3 className="detail-panel__section-title">Difficulty</h3>
-              <div className="detail-panel__difficulties">
-                <DifficultyRow label="Guitar" value={entry.guitarDifficulty} />
-                <DifficultyRow label="Bass" value={entry.bassDifficulty} />
-                <DifficultyRow label="Drums" value={entry.drumDifficulty} />
-                <DifficultyRow
-                  label={entry.vocalParts && entry.vocalParts > 1 ? `Vocals ×${entry.vocalParts}` : 'Vocals'}
-                  value={entry.vocalsDifficulty}
-                />
-                <DifficultyRow label="Keys" value={entry.keysDifficulty} />
-                <DifficultyRow label="Pro Guitar" value={entry.proGuitarDifficulty} />
-                <DifficultyRow label="Pro Bass" value={entry.proBassDifficulty} />
-                <DifficultyRow label="Pro Keys" value={entry.proKeysDifficulty} />
-                <div className="detail-panel__diff-row">
-                  <span className="detail-panel__diff-label">Band</span>
-                  <DifficultyDots value={entry.bandDifficulty} />
-                </div>
-              </div>
             </div>
           </>
         )}

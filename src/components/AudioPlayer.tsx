@@ -220,7 +220,7 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 
 	return (
 		<button className="detail-panel__play-button" onClick={togglePlay}>
-			{isPlaying ? '\u23F9 Stop' : '\u25B6 Preview'}
+			{isPlaying ? '\u23F9' : '\u25B6'}
 		</button>
 	);
 }
