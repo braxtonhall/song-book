@@ -1,5 +1,6 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { ListImperativeAPI } from 'react-window';
+import { useGlobalPointerCancel } from '../hooks/useGlobalPointerCancel';
 import { useLandscape } from '../hooks/useLandscape';
 import './AlphaIndex.css';
 
@@ -54,20 +55,14 @@ export function AlphaIndex({
   }, [letterAtY]);
 
   const handlePointerUp = useCallback(() => {
+    if (!isDragging.current) {
+      return;
+    }
     isDragging.current = false;
     setActive(null);
   }, []);
 
-  useEffect(() => {
-    const handleGlobalPointerUp = () => {
-      if (isDragging.current) {
-        handlePointerUp();
-      }
-    };
-
-    window.addEventListener('pointerup', handleGlobalPointerUp);
-    return () => window.removeEventListener('pointerup', handleGlobalPointerUp);
-  }, [handlePointerUp]);
+  useGlobalPointerCancel(handlePointerUp);
 
   return (
     <div className="alpha-wrapper">

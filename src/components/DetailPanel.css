@@ -241,6 +241,24 @@
 	text-align: center;
 }
 
+.detail-panel__add-queue-btn {
+	width: 100%;
+	padding: 12px;
+	border-radius: 8px;
+	border: none;
+	background: #ffb300;
+	color: #1a1100;
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s;
+	margin-top: 4px;
+}
+
+.detail-panel__add-queue-btn:hover {
+	background: #e6a100;
+}
+
 .detail-panel__close {
 	display: none;
 }

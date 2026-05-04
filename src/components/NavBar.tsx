@@ -52,9 +52,10 @@ interface NavBarProps {
 	landscape: boolean;
 	activePage: PageId;
 	onNavigate: (page: PageId) => void;
+	queueToasts: number[];
 }
 
-export function NavBar({ landscape, activePage, onNavigate }: NavBarProps) {
+export function NavBar({ landscape, activePage, onNavigate, queueToasts }: NavBarProps) {
 	return (
 		<nav className={`nav-bar${landscape ? ' nav-bar--landscape' : ''}`}>
 			{ICONS.map((item) => (
@@ -65,6 +66,9 @@ export function NavBar({ landscape, activePage, onNavigate }: NavBarProps) {
 				>
 					{item.icon}
 					<span className="nav-bar__label">{item.label}</span>
+					{item.id === 'queue' && queueToasts.map((id) => (
+						<span key={id} className="nav-bar__toast">+1</span>
+					))}
 				</button>
 			))}
 		</nav>

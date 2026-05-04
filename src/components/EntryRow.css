@@ -1,16 +1,65 @@
 .entry-row {
+	position: relative;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+	cursor: pointer;
+	box-sizing: border-box;
+	user-select: none;
+	overflow: hidden;
+}
+
+.entry-row--dragging {
+	visibility: hidden;
+}
+
+/* ── Swipe background layer ── */
+
+.entry-row__swipe-bg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 24px;
+	transition: background-color 0.2s ease;
+}
+
+.entry-row__swipe-icon {
+	transition: color 0.2s ease;
+}
+
+/* ── Content layer (slides horizontally) ── */
+
+.entry-row__content {
 	display: flex;
 	align-items: center;
 	padding: 0 16px;
 	gap: 12px;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-	cursor: pointer;
+	position: relative;
+	z-index: 1;
+	background: #121212;
+	height: 100%;
 	box-sizing: border-box;
 }
 
-.entry-row:hover {
+.entry-row__content:hover::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
 	background: rgba(255, 255, 255, 0.05);
+	pointer-events: none;
 }
+
+.entry-row__content--swiping {
+	transition: transform 0.2s ease;
+}
+
+/* ── Avatar ── */
 
 .entry-avatar {
 	height: calc(100% - 16px);
@@ -25,6 +74,8 @@
 	height: 100%;
 	object-fit: cover;
 }
+
+/* ── Text ── */
 
 .entry-text {
 	flex: 1;
@@ -55,6 +106,52 @@
 	white-space: nowrap;
 	margin-top: 2px;
 }
+
+/* ── Drag handle ── */
+
+.entry-row__drag-handle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 100%;
+	cursor: grab;
+	color: rgba(255, 255, 255, 0.25);
+	flex-shrink: 0;
+	touch-action: none;
+}
+
+.entry-row__drag-handle:active {
+	cursor: grabbing;
+	color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Dismiss button ── */
+
+.entry-row__dismiss-btn {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: none;
+	background: none;
+	color: rgba(255, 255, 255, 0.3);
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	padding: 0;
+	transition: background 0.15s, color 0.15s;
+}
+
+.entry-row__dismiss-btn:hover {
+	background: rgba(255, 60, 60, 0.2);
+	color: #ff6060;
+}
+
+/* ── Portrait adjustments ── */
 
 @media (orientation: portrait) {
 	.entry-title {

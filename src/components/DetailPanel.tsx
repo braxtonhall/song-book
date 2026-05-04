@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Entry } from '../types';
 import { AudioPlayer } from './AudioPlayer';
 import { useSongPassword } from '../hooks/useSongPassword';
+import { useGlobalPointerCancel } from '../hooks/useGlobalPointerCancel';
+import { useVelocityTrace } from '../hooks/useVelocityTrace';
 import './DetailPanel.css';
 
 const RATING_LABELS = ['Unrated', 'Family Friendly', 'Supervision Recommended'];
@@ -47,16 +49,18 @@ export function DetailPanel({
   dismissed,
   onDismiss,
   isLandscape,
+  onAddToQueue,
 }: {
   entry: Entry | null;
   dismissed: boolean;
   onDismiss: () => void;
   isLandscape: boolean;
+  onAddToQueue?: (entry: Entry) => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
   const dragStartPanelY = useRef(0);
-  const moveHistory = useRef<{ y: number; t: number }[]>([]);
+  const { resetPoints, observePoint } = useVelocityTrace(80);
   const swipeVelocity = useRef(0);
   const isDragging = useRef(false);
   const [dragging, setDragging] = useState(false);
@@ -135,38 +139,27 @@ export function DetailPanel({
     isDragging.current = true;
     setDragging(true);
     dragStartY.current = e.clientY;
-    moveHistory.current = [{ y: e.clientY, t: e.timeStamp }];
+    resetPoints()
+    observePoint(e);
     const currentTop = parseFloat(getComputedStyle(panelRef.current!).top);
     panelRef.current!.style.top = currentTop + 'px';
     panelRef.current!.style.transition = 'none';
     dragStartPanelY.current = currentTop;
-  }, []);
-
-  const addToHistory = useCallback((e: { clientY: number, timeStamp: number }) => {
-    const history = moveHistory.current;
-    history.push({ y: e.clientY, t: e.timeStamp });
-    const cutoff = e.timeStamp - 80;
-    moveHistory.current = history.filter(p => p.t >= cutoff);
-  }, []);
+  }, [resetPoints, observePoint]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current) return;
     e.preventDefault();
     const newTop = Math.max(MIN_TOP, dragStartPanelY.current + (e.clientY - dragStartY.current));
     panelRef.current!.style.top = newTop + 'px';
-    addToHistory(e);
-  }, [addToHistory]);
+    observePoint(e);
+  }, [observePoint]);
 
-  const handlePointerUp = useCallback((e: { clientY: number, timeStamp: number }) => {
+  const handlePointerUp = useCallback((e: { clientX: number, clientY: number, timeStamp: number }) => {
     if (!isDragging.current) return;
     isDragging.current = false;
     setDragging(false);
-    addToHistory(e);
-    const history = moveHistory.current;
-    const oldest = history[0];
-    const newest = history[history.length - 1];
-    const elapsed = oldest && newest ? newest.t - oldest.t : 0;
-    const velocity = elapsed > 0 ? (newest.y - oldest.y) / elapsed : 0; // px/ms, positive = downward
+    const { vy: velocity } = observePoint(e);
     const finalTop = parseFloat(panelRef.current!.style.top);
     if (finalTop > window.innerHeight * DISMISS_THRESHOLD || velocity > 0.5) {
       swipeVelocity.current = Math.max(0, velocity);
@@ -179,20 +172,10 @@ export function DetailPanel({
       panelRef.current!.style.top = target + 'px';
     } else {
       panelRef.current!.style.transition = 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1), --panel-accent 0.4s ease';
-      // panelRef.current!.style.top = defaultTop() + 'px';
     }
-  }, [onDismiss, addToHistory]);
+  }, [onDismiss, observePoint]);
 
-  useEffect(() => {
-    const handleGlobalPointerUp = (e: PointerEvent) => {
-      if (isDragging.current) {
-        handlePointerUp(e);
-      }
-    };
-
-    window.addEventListener('pointerup', handleGlobalPointerUp);
-    return () => window.removeEventListener('pointerup', handleGlobalPointerUp);
-  }, [handlePointerUp]);
+  useGlobalPointerCancel(handlePointerUp);
 
   const isOpen = isLandscape && !dismissed;
 
@@ -273,6 +256,15 @@ export function DetailPanel({
               {entry.multitracks && <span className="detail-panel__badge">Multitracks</span>}
               {entry.cover && <span className="detail-panel__badge">Cover</span>}
             </div>
+            {/* TODO I don't know if I like this.... */}
+            {onAddToQueue && (
+              <button
+                className="detail-panel__add-queue-btn"
+                onClick={() => onAddToQueue(entry)}
+              >
+                Add to Queue
+              </button>
+            )}
           </>
         )}
       </div>

@@ -27,9 +27,10 @@ interface LibraryPageProps {
 	onSelect: (entry: Entry) => void;
 	selectedEntryId: number | null;
 	panelOpen: boolean;
+	onAddToQueue?: (entry: Entry) => void;
 }
 
-export function LibraryPage({ entries, onSelect, selectedEntryId, panelOpen }: LibraryPageProps) {
+export function LibraryPage({ entries, onSelect, selectedEntryId, panelOpen, onAddToQueue }: LibraryPageProps) {
 	const commonRowHeight = useRowHeight();
 	const listRef = useListRef(null);
 	const [query, setQuery] = useState('');
@@ -70,6 +71,12 @@ export function LibraryPage({ entries, onSelect, selectedEntryId, panelOpen }: L
 
 	const headerOffset = debouncedQuery ? 0 : 1;
 
+	const handleSwipeChange = useCallback((active: boolean) => {
+		const el = listRef.current?.element;
+		if (!el) return;
+		el.style.overflow = active ? 'hidden' : 'auto';
+	}, [listRef]);
+
 	const letterFirstIndex = useMemo(() => {
 		const map: Record<string, number> = {};
 		filteredEntries.forEach((e, i) => {
@@ -109,6 +116,8 @@ export function LibraryPage({ entries, onSelect, selectedEntryId, panelOpen }: L
 						onSortChange: setSortBy,
 						selectedId: selectedEntryId,
 						panelOpen,
+						onAddToQueue,
+						onSwipeChange: handleSwipeChange,
 					}}
 					onRowsRendered={handleRowsRendered}
 					style={{ height: '100%', width: '100%' }}

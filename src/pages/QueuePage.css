@@ -1,0 +1,42 @@
+.queue-list::-webkit-scrollbar {
+	width: 8px;
+}
+
+.queue-list::-webkit-scrollbar-track {
+	background: #1c1c1c;
+}
+
+.queue-list::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 3px;
+	border: 2px solid #1c1c1c;
+}
+
+.queue-list::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.35);
+}
+
+.queue-list {
+	scrollbar-gutter: stable;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(255, 255, 255, 0.2) #1c1c1c;
+}
+
+.queue-page--gesturing {
+	user-select: none;
+}
+
+.queue-page--gesturing * {
+	user-select: none;
+}
+
+.queue-drop-indicator {
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: #ffb300;
+	pointer-events: none;
+	border-radius: 1px;
+	z-index: 20;
+}

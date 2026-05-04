@@ -8,6 +8,7 @@ import { QueuePage } from './pages/QueuePage';
 import { PartyPage } from './pages/PartyPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { useLandscape } from './hooks/useLandscape';
+import { useQueue } from './hooks/useQueue';
 import './App.css';
 
 type PageId = 'library' | 'queue' | 'party' | 'settings';
@@ -18,10 +19,23 @@ function App() {
   const [page, setPage] = useState<PageId>('library');
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [sheetDismissed, setSheetDismissed] = useState(true);
+  const { queue, addToQueue, reorderQueue, dismissFromQueue } = useQueue();
+  const [queueToasts, setQueueToasts] = useState<number[]>([]);
 
   useEffect(() => {
     getEntries().then(setEntries);
   }, []);
+
+  const handleAddToQueue = useCallback((entry: Entry) => {
+    addToQueue(entry);
+    if (page !== 'queue') {
+      const id = Date.now();
+      setQueueToasts(prev => [...prev, id]);
+      setTimeout(() => {
+        setQueueToasts(prev => prev.filter(t => t !== id));
+      }, 1500);
+    }
+  }, [addToQueue, page]);
 
   const handleSelect = useCallback((entry: Entry) => {
     setSelectedEntry(entry);
@@ -38,7 +52,7 @@ function App() {
 
   return (
     <>
-      <NavBar landscape={landscape} activePage={page} onNavigate={setPage} />
+      <NavBar landscape={landscape} activePage={page} onNavigate={setPage} queueToasts={queueToasts} />
       <div className={`App${landscape && !sheetDismissed ? ' App--panel-open' : ''}`}>
         {page === 'library' && (
           <LibraryPage
@@ -46,9 +60,19 @@ function App() {
             onSelect={handleSelect}
             selectedEntryId={selectedEntry?.id ?? null}
             panelOpen={!sheetDismissed}
+            onAddToQueue={handleAddToQueue}
           />
         )}
-        {page === 'queue' && <QueuePage />}
+        {page === 'queue' && (
+          <QueuePage
+            queue={queue}
+            onReorder={reorderQueue}
+            onDismiss={dismissFromQueue}
+            onSelect={handleSelect}
+            selectedEntryId={selectedEntry?.id ?? null}
+            panelOpen={!sheetDismissed}
+          />
+        )}
         {page === 'party' && <PartyPage />}
         {page === 'settings' && <SettingsPage />}
         <DetailPanel
@@ -56,6 +80,7 @@ function App() {
           dismissed={sheetDismissed}
           onDismiss={() => setSheetDismissed(true)}
           isLandscape={landscape}
+          onAddToQueue={handleAddToQueue}
         />
       </div>
     </>
