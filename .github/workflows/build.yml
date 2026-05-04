@@ -1,0 +1,34 @@
+name: publish
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: install node 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+
+      - name: install packages
+        run: yarn install
+
+      - name: build
+        run: yarn build
+        env:
+          PUBLIC_URL: "/song-book"
+          REACT_APP_SONG_PASSWORD_CHECKSUM: ${{ secrets.SONG_PASSWORD_CHECKSUM }}
+
+      - name: deploy
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build
