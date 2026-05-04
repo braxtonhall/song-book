@@ -70,14 +70,13 @@
 	align-items: center;
 	gap: 8px;
 	flex-shrink: 0;
-	margin-right: 10px;
+	margin-right: 8px;
 }
 
 .detail-panel__diff-columns {
 	display: flex;
 	gap: 16px;
-	flex: 1 0 180px;
-	min-width: 0;
+	flex: 1 0 200px;
 }
 
 .detail-panel__diff-col {
@@ -97,8 +96,8 @@
 
 .detail-panel__avatar {
 	position: relative;
-	width: 140px;
-	height: 140px;
+	width: 122px;
+	height: 122px;
 	border-radius: 8px;
 	flex-shrink: 0;
 	overflow: hidden;
@@ -174,7 +173,7 @@
 
 .detail-panel__play-button {
 	position: absolute;
-	left: calc(50% + 46px);
+	left: calc(50% + 38px);
 	bottom: -12px;
 	width: 36px;
 	height: 36px;
@@ -201,8 +200,8 @@
 }
 
 .detail-panel__diff-label {
-	width: 22px;
-	height: 22px;
+	width: 18px;
+	height: 18px;
 	object-fit: contain;
 	flex-shrink: 0;
 	opacity: 0.7;

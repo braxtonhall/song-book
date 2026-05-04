@@ -32,7 +32,12 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 	const dismissedRef = useRef(dismissed);
 	dismissedRef.current = dismissed;
 	const togglePlayRef = useRef<() => void>(() => { });
+	const isPlayingRef = useRef(false);
 	const blobUrlRef = useRef<string>('');
+
+	useEffect(() => {
+		isPlayingRef.current = isPlaying;
+	}, [isPlaying]);
 
 	useEffect(() => {
 		return () => {
@@ -48,7 +53,7 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 			}
 			setIsPlaying(false);
 		};
-	}, [entry]);
+	}, []);
 
 	const fadeOutAndStop = useCallback(() => {
 		const audio = audioRef.current;
@@ -107,6 +112,22 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 			ms.setActionHandler('stop', null);
 		}
 	}, [entry, dismissed, isPlaying]);
+
+	useEffect(() => {
+		if (!entry || !isPlayingRef.current) return;
+		if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+		if (monitorIntervalRef.current) clearInterval(monitorIntervalRef.current);
+		if (audioRef.current) {
+			audioRef.current.pause();
+			audioRef.current = null;
+		}
+		if (blobUrlRef.current) {
+			URL.revokeObjectURL(blobUrlRef.current);
+			blobUrlRef.current = '';
+		}
+		setIsPlaying(false);
+		togglePlayRef.current();
+	}, [entry]);
 
 	const togglePlay = useCallback(async () => {
 		if (audioRef.current) {
