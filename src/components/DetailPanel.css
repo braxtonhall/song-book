@@ -80,9 +80,10 @@
 }
 
 .detail-panel__diff-col {
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: max-content 1fr;
 	gap: 8px;
+	align-items: center;
 	flex: 1;
 }
 
@@ -195,10 +196,7 @@
 }
 
 .detail-panel__diff-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
+	display: contents;
 }
 
 .detail-panel__diff-label {
@@ -211,6 +209,8 @@
 	display: flex;
 	gap: 4px;
 	align-items: center;
+	flex: 1;
+	justify-content: center;
 }
 
 .detail-panel__diff-dot {

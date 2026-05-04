@@ -60,7 +60,7 @@ export function DetailPanel({
   const swipeVelocity = useRef(0);
   const isDragging = useRef(false);
   const [dragging, setDragging] = useState(false);
-	const {password: songPassword} = useSongPassword();
+  const { password: songPassword } = useSongPassword();
 
   const MIN_TOP = 80;
   const DISMISS_THRESHOLD = 0.85;
@@ -218,21 +218,23 @@ export function DetailPanel({
                 <div className="detail-panel__diff-col">
                   <DifficultyRow label="🎸" value={entry.guitarDifficulty} />
                   <DifficultyRow label="🎸" value={entry.bassDifficulty} />
+                  <DifficultyRow label="🎹" value={entry.keysDifficulty} />
                   <DifficultyRow label="🥁" value={entry.drumDifficulty} />
                   <DifficultyRow
                     label={entry.vocalParts && entry.vocalParts > 1 ? `🎤×${entry.vocalParts}` : '🎤'}
                     value={entry.vocalsDifficulty}
                   />
-                  <div className="detail-panel__diff-row">
-                    <span className="detail-panel__diff-label">🎵</span>
-                    <DifficultyDots value={entry.bandDifficulty} />
-                  </div>
+
                 </div>
                 <div className="detail-panel__diff-col">
-                  <DifficultyRow label="🎹" value={entry.keysDifficulty} />
                   <DifficultyRow label="🎸⁺" value={entry.proGuitarDifficulty} />
                   <DifficultyRow label="🎸⁺" value={entry.proBassDifficulty} />
                   <DifficultyRow label="🎹⁺" value={entry.proKeysDifficulty} />
+                  <DifficultyRow label="🥁⁺" value={entry.drumDifficulty} />
+                  <DifficultyRow
+                    label={'🎵'}
+                    value={entry.bandDifficulty}
+                  />
                 </div>
               </div>
             </div>
