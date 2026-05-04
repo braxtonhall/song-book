@@ -34,6 +34,10 @@ export function useSongPassword(): string | null {
 		const pw = params.get("pw");
 		if (pw && validSongPassword(pw)) {
 			localStorage.setItem("SONG_PASSWORD", pw);
+			params.delete("pw");
+			const search = params.toString();
+			const newUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+			window.history.replaceState(null, "", newUrl);
 		}
 	}, []);
 
