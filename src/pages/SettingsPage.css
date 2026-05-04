@@ -1,0 +1,82 @@
+.page--settings {
+	padding: 24px;
+	gap: 16px;
+}
+
+.settings__title {
+	color: #fff;
+	font-size: 18px;
+	font-weight: 600;
+	margin: 0 0 12px;
+}
+
+.settings__row {
+	display: flex;
+	gap: 8px;
+	align-items: stretch;
+}
+
+.settings__input {
+	flex: 1;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	background: rgba(255, 255, 255, 0.06);
+	color: #fff;
+	font-size: 15px;
+	outline: none;
+	transition: border-color 0.15s;
+}
+
+.settings__input::placeholder {
+	color: rgba(255, 255, 255, 0.3);
+}
+
+.settings__input:focus {
+	border-color: rgba(255, 255, 255, 0.35);
+}
+
+.settings__input--invalid {
+	border-color: #d32f2f;
+	background: rgba(211, 47, 47, 0.08);
+}
+
+.settings__input--invalid:focus {
+	border-color: #d32f2f;
+}
+
+.settings__btn {
+	padding: 10px 16px;
+	border-radius: 8px;
+	border: none;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition:
+		background 0.15s,
+		opacity 0.15s;
+}
+
+.settings__btn:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.settings__btn--copy {
+	background: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.8);
+}
+
+.settings__btn--copy:hover:not(:disabled) {
+	background: rgba(255, 255, 255, 0.18);
+}
+
+.settings__btn--save {
+	background: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.8);
+	width: 100%;
+}
+
+.settings__btn--save:hover:not(:disabled) {
+	background: rgba(255, 255, 255, 0.18);
+}

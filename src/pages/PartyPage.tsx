@@ -5,7 +5,7 @@ import './Page.css';
 import './PartyPage.css';
 
 export function PartyPage() {
-	const password = useSongPassword();
+	const {password} = useSongPassword();
 	const url = useMemo(() => {
 		const search = new URLSearchParams();
 		if (password) {

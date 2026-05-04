@@ -60,7 +60,7 @@ export function DetailPanel({
   const swipeVelocity = useRef(0);
   const isDragging = useRef(false);
   const [dragging, setDragging] = useState(false);
-  const songPassword = useSongPassword();
+	const {password: songPassword} = useSongPassword();
 
   const MIN_TOP = 80;
   const DISMISS_THRESHOLD = 0.85;
@@ -211,8 +211,8 @@ export function DetailPanel({
               <div className="detail-panel__art-column">
                 <div className="detail-panel__avatar" style={{ backgroundColor: entry.hex }} >
                   {entry.albumArt && <img src={`https://braxtonhall.ca/song-book-resources/art/${entry.albumArt}.png`} alt={`${entry.albumName} album art`} />}
-                  {songPassword && entry.ogg && <AudioPlayer entry={entry} dismissed={dismissed} />}
                 </div>
+                {songPassword && entry.ogg && <AudioPlayer entry={entry} dismissed={dismissed} />}
               </div>
               <div className="detail-panel__diff-columns">
                 <div className="detail-panel__diff-col">
