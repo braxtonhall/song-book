@@ -133,6 +133,29 @@
 	color: rgba(255, 255, 255, 0.8);
 }
 
+.detail-panel__play-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 10px;
+	border-radius: 4px;
+	background: rgba(255, 255, 255, 0.12);
+	color: rgba(255, 255, 255, 0.8);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	border: none;
+	cursor: pointer;
+	transition:
+		background 0.15s,
+		color 0.15s;
+}
+
+.detail-panel__play-button:hover {
+	background: rgba(255, 255, 255, 0.2);
+	color: #fff;
+}
+
 .detail-panel__section {
 	margin-top: 20px;
 }

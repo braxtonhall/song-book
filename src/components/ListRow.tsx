@@ -1,5 +1,5 @@
 import { RowComponentProps } from 'react-window';
-import { Entry } from '../stub/entries';
+import { Entry } from '../types';
 import { EntryRow } from './EntryRow';
 import { SortHeader, SortBy } from './SortHeader';
 

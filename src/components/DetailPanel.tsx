@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Entry } from '../stub/entries';
+import { Entry } from '../types';
+import { AudioPlayer } from './AudioPlayer';
+import { useSongPassword } from '../hooks/useSongPassword';
 import './DetailPanel.css';
 
 const RATING_LABELS = ['Unrated', 'Family Friendly', 'Supervision Recommended'];
@@ -58,6 +60,7 @@ export function DetailPanel({
   const swipeVelocity = useRef(0);
   const isDragging = useRef(false);
   const [dragging, setDragging] = useState(false);
+  const songPassword = useSongPassword();
 
   const MIN_TOP = 80;
   const DISMISS_THRESHOLD = 0.85;
@@ -126,6 +129,7 @@ export function DetailPanel({
   }, [isLandscape]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('button')) return;
     e.preventDefault();
     panelRef.current?.setPointerCapture(e.pointerId);
     isDragging.current = true;
@@ -203,7 +207,7 @@ export function DetailPanel({
         {entry && (
           <>
             <div className="detail-panel__avatar" style={{ backgroundColor: entry.hex }} >
-              {entry.albumArt && <img src={`${process.env.PUBLIC_URL}/art/${entry.albumArt}.png`}></img>}
+              {entry.albumArt && <img src={`https://braxtonhall.ca/song-book-resources/art/${entry.albumArt}.png`} alt={`${entry.albumName} album art`} />}
             </div>
             <h2 className="detail-panel__title">{entry.song}</h2>
             <p className="detail-panel__artist">{entry.artist}</p>
@@ -221,6 +225,7 @@ export function DetailPanel({
               {entry.rating > 0 && <span className="detail-panel__badge">{RATING_LABELS[entry.rating] || "Unrated"}</span>}
               {entry.multitracks && <span className="detail-panel__badge">Multitracks</span>}
               {entry.cover && <span className="detail-panel__badge">Cover</span>}
+              {songPassword && entry.ogg && <AudioPlayer entry={entry} dismissed={dismissed} />}
             </div>
 
             <div className="detail-panel__section">

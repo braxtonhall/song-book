@@ -1,8 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ListImperativeAPI } from 'react-window';
-import { LETTERS_ARRAY } from '../stub/entries';
 import { useLandscape } from '../hooks/useLandscape';
 import './AlphaIndex.css';
+
+const LETTERS_ARRAY = '0ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 export function AlphaIndex({
   listRef,
@@ -18,7 +19,6 @@ export function AlphaIndex({
   const [active, setActive] = useState<{ letter: string; y: number } | null>(null);
   const [hovered, setHovered] = useState(false);
   const landscape = useLandscape();
-  const zoneRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const visible = landscape || scrollVisible || hovered || !!active;
@@ -43,7 +43,7 @@ export function AlphaIndex({
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
-    zoneRef.current?.setPointerCapture(e.pointerId);
+    stripRef.current?.setPointerCapture(e.pointerId);
     isDragging.current = true;
     letterAtY(e.clientY);
   }, [letterAtY]);
@@ -77,8 +77,8 @@ export function AlphaIndex({
         </div>
       )}
       <div
-        ref={zoneRef}
-        className="alpha-zone"
+        ref={stripRef}
+        className={`alpha-strip${visible ? ' alpha-strip--visible' : ''}${active ? ' alpha-strip--active' : ''}`}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onPointerDown={handlePointerDown}
@@ -86,19 +86,14 @@ export function AlphaIndex({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        <div
-          ref={stripRef}
-          className={`alpha-strip${visible ? ' alpha-strip--visible' : ''}${active ? ' alpha-strip--active' : ''}`}
-        >
-          {LETTERS_ARRAY.map(letter => (
-            <span
-              key={letter}
-              className={`alpha-letter${active?.letter === letter ? ' alpha-letter--active' : letter === currentLetter ? ' alpha-letter--current' : ''}${!(letter in letterFirstIndex) ? ' alpha-letter--missing' : ''}`}
-            >
-              {letter}
-            </span>
-          ))}
-        </div>
+        {LETTERS_ARRAY.map(letter => (
+          <span
+            key={letter}
+            className={`alpha-letter${active?.letter === letter ? ' alpha-letter--active' : letter === currentLetter ? ' alpha-letter--current' : ''}${!(letter in letterFirstIndex) ? ' alpha-letter--missing' : ''}`}
+          >
+            {letter}
+          </span>
+        ))}
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { List, ListImperativeAPI, useListRef } from 'react-window';
 import Fuse from 'fuse.js';
-import { getEntries, Entry } from './stub/entries';
+import { Entry } from './types';
+import { getEntries } from './api/entries';
 import { SearchBar } from './components/SearchBar';
 import { DetailPanel } from './components/DetailPanel';
 import { AlphaIndex } from './components/AlphaIndex';
@@ -91,7 +92,7 @@ function App() {
 
   const visibleEntry = filteredEntries[visibleStart - headerOffset];
   const currentLetter =
-    visibleEntry ? ((sortBy === 'artist' ? visibleEntry.sortArtist : visibleEntry.song)[0]?.toUpperCase() ?? null) : null;
+    visibleEntry ? ((sortBy === 'artist' ? visibleEntry.sortArtist : visibleEntry.sortSong)[0]?.toUpperCase() ?? null) : null;
 
   if (entries === null) {
     return (
