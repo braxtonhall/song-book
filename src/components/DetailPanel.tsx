@@ -26,10 +26,10 @@ function DifficultyDots({ value }: { value: number | null }) {
   );
 }
 
-function DifficultyRow({ label, value }: { label: string; value: number | null }) {
+function DifficultyRow({ icon, alt, value }: { icon: string; alt: string; value: number | null }) {
   return (
     <div className="detail-panel__diff-row">
-      <span className="detail-panel__diff-label">{label}</span>
+      <img className="detail-panel__diff-label" src={`${process.env.PUBLIC_URL}/icons/${icon}`} alt={alt} />
       <DifficultyDots value={value} />
     </div>
   );
@@ -216,23 +216,25 @@ export function DetailPanel({
               </div>
               <div className="detail-panel__diff-columns">
                 <div className="detail-panel__diff-col">
-                  <DifficultyRow label="🎸" value={entry.guitarDifficulty} />
-                  <DifficultyRow label="🎸" value={entry.bassDifficulty} />
-                  <DifficultyRow label="🥁" value={entry.drumDifficulty} />
-                  <DifficultyRow label="🎹" value={entry.keysDifficulty} />
+                  <DifficultyRow icon="guitar.png" alt="Guitar" value={entry.guitarDifficulty} />
+                  <DifficultyRow icon="bass.png" alt="Bass" value={entry.bassDifficulty} />
+                  <DifficultyRow icon="drums.png" alt="Drums" value={entry.drumDifficulty} />
+                  <DifficultyRow icon="keys.png" alt="Keys" value={entry.keysDifficulty} />
                   <DifficultyRow
-                    label={entry.vocalParts && entry.vocalParts > 1 ? `🎤×${entry.vocalParts}` : '🎤'}
+                    icon={entry.vocalParts && entry.vocalParts > 2 ? 'vocals-3.png' : entry.vocalParts && entry.vocalParts > 1 ? 'vocals-2.png' : 'vocals.png'}
+                    alt="Vocals"
                     value={entry.vocalsDifficulty}
                   />
 
                 </div>
                 <div className="detail-panel__diff-col">
-                  <DifficultyRow label="🎸⁺" value={entry.proGuitarDifficulty} />
-                  <DifficultyRow label="🎸⁺" value={entry.proBassDifficulty} />
-                  <DifficultyRow label="🥁⁺" value={entry.drumDifficulty} />
-                  <DifficultyRow label="🎹⁺" value={entry.proKeysDifficulty} />
+                  <DifficultyRow icon="guitar-plus.png" alt="Pro Guitar" value={entry.proGuitarDifficulty} />
+                  <DifficultyRow icon="bass-plus.png" alt="Pro Bass" value={entry.proBassDifficulty} />
+                  <DifficultyRow icon="drums-plus.png" alt="Pro Drums" value={entry.drumDifficulty} />
+                  <DifficultyRow icon="keys-plus.png" alt="Pro Keys" value={entry.proKeysDifficulty} />
                   <DifficultyRow
-                    label={'🎵'}
+                    icon="band.png"
+                    alt="Band"
                     value={entry.bandDifficulty}
                   />
                 </div>
