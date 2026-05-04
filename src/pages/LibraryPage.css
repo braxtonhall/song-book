@@ -1,0 +1,33 @@
+.page--library {
+	position: relative;
+}
+
+.list-wrapper {
+	flex: 1;
+	min-height: 0;
+}
+
+/* Scrollbar gutter */
+.list-wrapper *::-webkit-scrollbar {
+	width: 8px;
+}
+
+.list-wrapper *::-webkit-scrollbar-track {
+	background: #1c1c1c;
+}
+
+.list-wrapper *::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 3px;
+	border: 2px solid #1c1c1c;
+}
+
+.list-wrapper *::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.35);
+}
+
+.list-wrapper * {
+	scrollbar-gutter: stable;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(255, 255, 255, 0.2) #1c1c1c;
+}
