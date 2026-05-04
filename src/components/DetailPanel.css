@@ -4,6 +4,10 @@
 	initial-value: #1c1c1c;
 }
 
+.detail-panel button {
+	touch-action: auto;
+}
+
 .detail-panel {
 	position: fixed;
 	left: 0;

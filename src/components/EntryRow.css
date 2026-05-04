@@ -5,6 +5,7 @@
 	box-sizing: border-box;
 	user-select: none;
 	overflow: hidden;
+	touch-action: pan-y;
 }
 
 .entry-row--dragging {
