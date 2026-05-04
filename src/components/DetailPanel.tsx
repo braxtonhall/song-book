@@ -218,8 +218,8 @@ export function DetailPanel({
                 <div className="detail-panel__diff-col">
                   <DifficultyRow label="🎸" value={entry.guitarDifficulty} />
                   <DifficultyRow label="🎸" value={entry.bassDifficulty} />
-                  <DifficultyRow label="🎹" value={entry.keysDifficulty} />
                   <DifficultyRow label="🥁" value={entry.drumDifficulty} />
+                  <DifficultyRow label="🎹" value={entry.keysDifficulty} />
                   <DifficultyRow
                     label={entry.vocalParts && entry.vocalParts > 1 ? `🎤×${entry.vocalParts}` : '🎤'}
                     value={entry.vocalsDifficulty}
@@ -229,8 +229,8 @@ export function DetailPanel({
                 <div className="detail-panel__diff-col">
                   <DifficultyRow label="🎸⁺" value={entry.proGuitarDifficulty} />
                   <DifficultyRow label="🎸⁺" value={entry.proBassDifficulty} />
-                  <DifficultyRow label="🎹⁺" value={entry.proKeysDifficulty} />
                   <DifficultyRow label="🥁⁺" value={entry.drumDifficulty} />
+                  <DifficultyRow label="🎹⁺" value={entry.proKeysDifficulty} />
                   <DifficultyRow
                     label={'🎵'}
                     value={entry.bandDifficulty}

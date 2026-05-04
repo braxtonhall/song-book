@@ -58,6 +58,7 @@
 
 .detail-panel__top-row {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 16px;
 	margin-bottom: 12px;
 }
@@ -75,7 +76,7 @@
 .detail-panel__diff-columns {
 	display: flex;
 	gap: 16px;
-	flex: 1;
+	flex: 1 0 180px;
 	min-width: 0;
 }
 
