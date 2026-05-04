@@ -142,21 +142,26 @@ export function DetailPanel({
     dragStartPanelY.current = currentTop;
   }, []);
 
-  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging.current) return;
-    e.preventDefault();
-    const newTop = Math.max(MIN_TOP, dragStartPanelY.current + (e.clientY - dragStartY.current));
-    panelRef.current!.style.top = newTop + 'px';
+  const addToHistory = useCallback((e: { clientY: number, timeStamp: number }) => {
     const history = moveHistory.current;
     history.push({ y: e.clientY, t: e.timeStamp });
     const cutoff = e.timeStamp - 80;
     moveHistory.current = history.filter(p => p.t >= cutoff);
   }, []);
 
-  const handlePointerUp = useCallback(() => {
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    const newTop = Math.max(MIN_TOP, dragStartPanelY.current + (e.clientY - dragStartY.current));
+    panelRef.current!.style.top = newTop + 'px';
+    addToHistory(e);
+  }, [addToHistory]);
+
+  const handlePointerUp = useCallback((e: { clientY: number, timeStamp: number }) => {
     if (!isDragging.current) return;
     isDragging.current = false;
     setDragging(false);
+    addToHistory(e);
     const history = moveHistory.current;
     const oldest = history[0];
     const newest = history[history.length - 1];
@@ -166,15 +171,22 @@ export function DetailPanel({
     if (finalTop > window.innerHeight * DISMISS_THRESHOLD || velocity > 0.5) {
       swipeVelocity.current = Math.max(0, velocity);
       onDismiss();
+    } else if (velocity < -0.5) {
+      const target = MIN_TOP;
+      const absVel = Math.abs(velocity);
+      const duration = Math.max(80, Math.min(400, Math.round((finalTop - target) / absVel)));
+      panelRef.current!.style.transition = `top ${duration}ms linear, --panel-accent 0.4s ease`;
+      panelRef.current!.style.top = target + 'px';
     } else {
       panelRef.current!.style.transition = 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1), --panel-accent 0.4s ease';
+      // panelRef.current!.style.top = defaultTop() + 'px';
     }
-  }, [onDismiss]);
+  }, [onDismiss, addToHistory]);
 
   useEffect(() => {
-    const handleGlobalPointerUp = () => {
+    const handleGlobalPointerUp = (e: PointerEvent) => {
       if (isDragging.current) {
-        handlePointerUp();
+        handlePointerUp(e);
       }
     };
 
