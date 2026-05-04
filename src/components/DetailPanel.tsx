@@ -207,15 +207,23 @@ export function DetailPanel({
       <div className="detail-panel__content">
         {entry && (
           <>
-            <div className="detail-panel__avatar" style={{ backgroundColor: entry.hex }} >
-              {entry.albumArt && <img src={`https://braxtonhall.ca/song-book-resources/art/${entry.albumArt}.png`} alt={`${entry.albumName} album art`} />}
+            <div className="detail-panel__top-row">
+              <div className="detail-panel__art-column">
+                <div className="detail-panel__avatar" style={{ backgroundColor: entry.hex }} >
+                  {entry.albumArt && <img src={`https://braxtonhall.ca/song-book-resources/art/${entry.albumArt}.png`} alt={`${entry.albumName} album art`} />}
+                </div>
+                {songPassword && entry.ogg && <AudioPlayer entry={entry} dismissed={dismissed} />}
+              </div>
+              <div className="detail-panel__info-column">
+                <h2 className="detail-panel__title">{entry.song}</h2>
+                <p className="detail-panel__artist">{entry.artist}</p>
+                <p className="detail-panel__album">
+                  {entry.albumName}{entry.year ? ` · ${entry.year}` : ''}
+                </p>
+              </div>
             </div>
-            <h2 className="detail-panel__title">{entry.song}</h2>
-            <p className="detail-panel__artist">{entry.artist}</p>
-            <p className="detail-panel__album">{entry.albumName}</p>
 
             <div className="detail-panel__meta">
-              {entry.year && <span>{entry.year}</span>}
               {entry.genre && <span>{entry.genre}</span>}
               {entry.source && <span>{entry.source}</span>}
             </div>
@@ -226,7 +234,6 @@ export function DetailPanel({
               {entry.rating > 0 && <span className="detail-panel__badge">{RATING_LABELS[entry.rating] || "Unrated"}</span>}
               {entry.multitracks && <span className="detail-panel__badge">Multitracks</span>}
               {entry.cover && <span className="detail-panel__badge">Cover</span>}
-              {songPassword && entry.ogg && <AudioPlayer entry={entry} dismissed={dismissed} />}
             </div>
 
             <div className="detail-panel__section">
