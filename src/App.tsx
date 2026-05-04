@@ -8,10 +8,16 @@ import { DetailPanel } from './components/DetailPanel';
 import { AlphaIndex } from './components/AlphaIndex';
 import { ListRow } from './components/ListRow';
 import { SortBy } from './components/SortHeader';
+import { NavBar } from './components/NavBar';
+import { QueuePage } from './pages/QueuePage';
+import { PartyPage } from './pages/PartyPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { useRowHeight } from './hooks/useRowHeight';
 import { useLandscape } from './hooks/useLandscape';
 import { useDebounce } from './hooks/useDebounce';
 import './App.css';
+
+type PageId = 'library' | 'queue' | 'party' | 'settings';
 
 const SORT_HEADER_HEIGHT = 44;
 
@@ -34,6 +40,7 @@ function App() {
   const [alphaVisible, setAlphaVisible] = useState(false);
   const [visibleStart, setVisibleStart] = useState(0);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [page, setPage] = useState<PageId>('library');
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [sheetDismissed, setSheetDismissed] = useState(true);
   const [sortBy, setSortBy] = useState<SortBy>('song');
@@ -103,35 +110,45 @@ function App() {
   }
 
   return (
-    <div className={`App${landscape && !sheetDismissed ? ' App--panel-open' : ''}`}>
-      <SearchBar query={query} onChange={setQuery} />
-      <div className="list-wrapper">
-        <List
-          listRef={listRef}
-          className={undefined}
-          rowComponent={ListRow}
-          rowCount={filteredEntries.length + headerOffset}
-          rowHeight={rowHeight}
-          rowProps={{ entries: filteredEntries, onSelect: handleSelect, headerOffset, sortBy, onSortChange: setSortBy, selectedId: selectedEntry?.id ?? null, panelOpen: !sheetDismissed }}
-          onRowsRendered={handleRowsRendered}
-          style={{ height: '100%', width: '100%' }}
+    <>
+      <NavBar landscape={landscape} activePage={page} onNavigate={setPage} />
+      <div className={`App${landscape && !sheetDismissed ? ' App--panel-open' : ''}`}>
+        {page === 'library' && (
+          <>
+            <SearchBar query={query} onChange={setQuery} />
+            <div className="list-wrapper">
+              <List
+                listRef={listRef}
+                className={undefined}
+                rowComponent={ListRow}
+                rowCount={filteredEntries.length + headerOffset}
+                rowHeight={rowHeight}
+                rowProps={{ entries: filteredEntries, onSelect: handleSelect, headerOffset, sortBy, onSortChange: setSortBy, selectedId: selectedEntry?.id ?? null, panelOpen: !sheetDismissed }}
+                onRowsRendered={handleRowsRendered}
+                style={{ height: '100%', width: '100%' }}
+              />
+            </div>
+            {!query && (
+              <AlphaIndex
+                listRef={listRef as React.RefObject<ListImperativeAPI>}
+                letterFirstIndex={letterFirstIndex}
+                scrollVisible={alphaVisible}
+                currentLetter={currentLetter}
+              />
+            )}
+          </>
+        )}
+        {page === 'queue' && <QueuePage />}
+        {page === 'party' && <PartyPage />}
+        {page === 'settings' && <SettingsPage />}
+        <DetailPanel
+          entry={selectedEntry}
+          dismissed={sheetDismissed}
+          onDismiss={() => setSheetDismissed(true)}
+          isLandscape={landscape}
         />
       </div>
-      {!query && (
-        <AlphaIndex
-          listRef={listRef as React.RefObject<ListImperativeAPI>}
-          letterFirstIndex={letterFirstIndex}
-          scrollVisible={alphaVisible}
-          currentLetter={currentLetter}
-        />
-      )}
-      <DetailPanel
-        entry={selectedEntry}
-        dismissed={sheetDismissed}
-        onDismiss={() => setSheetDismissed(true)}
-        isLandscape={landscape}
-      />
-    </div>
+    </>
   );
 }
 

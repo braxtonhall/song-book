@@ -1,6 +1,8 @@
 :root {
 	--search-height: 52px;
 	--landscape-panel-width: clamp(280px, 40vw, 420px);
+	--nav-portrait-height: 64px;
+	--nav-landscape-width: 72px;
 }
 
 .App {
@@ -11,6 +13,18 @@
 	background: #121212;
 	transition: padding-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 	animation: fade-in 0.4s ease;
+}
+
+@media (orientation: portrait) {
+	.App {
+		height: calc(100vh - var(--nav-portrait-height));
+	}
+}
+
+@media (orientation: landscape) {
+	.App {
+		padding-left: var(--nav-landscape-width);
+	}
 }
 
 @keyframes fade-in {
