@@ -10,3 +10,6 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - Sorting by difficulty, the difficulties are grouped in the menu
 - Need a delete history button in history
 - Need a clear queue button (not visible when you're in an active party)
+
+- Move play button down to beside enqueue. To big buttons. Enqueue changes to "Queued" for a moment and is disabled when you press it.
+- Add to queue fails the first time on Chrome Mobile. Why?!
