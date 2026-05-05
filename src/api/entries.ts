@@ -1,5 +1,5 @@
-import {Entry} from "../types";
-import {stringToColour, hashString} from "../utilities/hash";
+import { Entry } from "../types";
+import { stringToColour, hashString } from "../utilities/hash";
 
 function selectDifficulty(
 	diff: number | null | undefined,
@@ -55,7 +55,7 @@ export const getEntries = async (): Promise<Entry[]> => {
 	const response = await fetch("https://braxtonhall.ca/song-book-resources/songs.json");
 	const result: any[] = await response.json();
 	return result.map(
-		({songPackage, c3Comments, albumArt, ogg}, index): Entry => ({
+		({ songPackage, c3Comments, albumArt, ogg }, index): Entry => ({
 			albumArt,
 			song: songPackage.name,
 			sortSong: normalize(songPackage.name),

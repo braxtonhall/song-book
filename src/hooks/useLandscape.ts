@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 
 export function useLandscape(): boolean {
 	const [landscape, setLandscape] = useState(() => window.innerWidth > window.innerHeight);

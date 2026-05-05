@@ -1,19 +1,19 @@
-import React from 'react';
-import { QRCode } from '../components/QRCode';
-import { CopyButton } from '../components/CopyButton';
-import './Page.css';
-import './PartyPage.css';
-import { PeerStatus } from '../partyTypes';
+import React from "react";
+import { QRCode } from "../components/QRCode";
+import { CopyButton } from "../components/CopyButton";
+import "./Page.css";
+import "./PartyPage.css";
+import { PeerStatus } from "../partyTypes";
 import { getRockerId } from "../utilities/hash";
 
 interface PartyPageProps {
-	currentMode: 'solo' | 'party';
+	currentMode: "solo" | "party";
 	partyId: string | null;
 	joinError: string | null;
-	joiningStep: 'idle' | 'connecting';
+	joiningStep: "idle" | "connecting";
 	peerId: string | null;
 	url: string;
-	peers: { peer: string, status: PeerStatus }[];
+	peers: { peer: string; status: PeerStatus }[];
 	onStartClick: () => void;
 	onLeave: () => void;
 	onClearError: () => void;
@@ -35,27 +35,21 @@ export function PartyPage({
 }: PartyPageProps) {
 	return (
 		<div className="page page--party">
-			{joinError && currentMode === 'solo' && !partyId && (
+			{joinError && currentMode === "solo" && !partyId && (
 				<div className="party-error">
 					<p>{joinError}</p>
 					<div className="party-error__buttons">
-						<button
-							className="party-error__retry"
-							onClick={onTryAgain}
-						>
+						<button className="party-error__retry" onClick={onTryAgain}>
 							Try Again
 						</button>
-						<button
-							className="party-error__dismiss"
-							onClick={onClearError}
-						>
+						<button className="party-error__dismiss" onClick={onClearError}>
 							Dismiss
 						</button>
 					</div>
 				</div>
 			)}
 
-			{currentMode === 'solo' && !partyId && !joinError && (
+			{currentMode === "solo" && !partyId && !joinError && (
 				<div className="party-start">
 					<button className="party-start__button" onClick={onStartClick}>
 						Start Party
@@ -63,13 +57,13 @@ export function PartyPage({
 				</div>
 			)}
 
-			{currentMode === 'party' && partyId && joiningStep !== 'idle' && (
+			{currentMode === "party" && partyId && joiningStep !== "idle" && (
 				<div className="party-connecting">
 					<span>Joining party...</span>
 				</div>
 			)}
 
-			{currentMode === 'party' && partyId && joiningStep === 'idle' && (
+			{currentMode === "party" && partyId && joiningStep === "idle" && (
 				<>
 					{peerId && (
 						<div className="party-header">
@@ -101,7 +95,7 @@ export function PartyPage({
 								{peers.map(({ peer, status }) => (
 									<li
 										key={peer}
-										className={`party-peers__peer${status !== 'active' ? ' party-peers__peer--inactive' : ''}`}
+										className={`party-peers__peer${status !== "active" ? " party-peers__peer--inactive" : ""}`}
 									>
 										{getRockerId(peer)}
 									</li>

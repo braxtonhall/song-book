@@ -1,13 +1,13 @@
-import React, { useState, useCallback } from 'react';
-import './CopyButton.css';
+import React, { useState, useCallback } from "react";
+import "./CopyButton.css";
 
 interface CopyButtonProps {
 	text: string;
 	disabled?: boolean;
-	size?: 'sm' | 'md';
+	size?: "sm" | "md";
 }
 
-export function CopyButton({ text, disabled, size = 'sm' }: CopyButtonProps) {
+export function CopyButton({ text, disabled, size = "sm" }: CopyButtonProps) {
 	const [copied, setCopied] = useState(false);
 
 	const handleClick = useCallback(() => {
@@ -17,19 +17,13 @@ export function CopyButton({ text, disabled, size = 'sm' }: CopyButtonProps) {
 		});
 	}, [text]);
 
-	const classNames = [
-		'copy-btn',
-		size === 'md' ? 'copy-btn--md' : '',
-		copied ? 'copy-btn--success' : '',
-	].filter(Boolean).join(' ');
+	const classNames = ["copy-btn", size === "md" ? "copy-btn--md" : "", copied ? "copy-btn--success" : ""]
+		.filter(Boolean)
+		.join(" ");
 
 	return (
-		<button
-			className={classNames}
-			onClick={handleClick}
-			disabled={disabled}
-		>
-			{copied ? 'Copied!' : 'Copy'}
+		<button className={classNames} onClick={handleClick} disabled={disabled}>
+			{copied ? "Copied!" : "Copy"}
 		</button>
 	);
 }

@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Peer, DataConnection } from 'peerjs';
-import { WireMessage } from '../partyTypes';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Peer, DataConnection } from "peerjs";
+import { WireMessage } from "../partyTypes";
 
-const STORAGE_PEER_ID = 'song-book:peer-id';
-const STORAGE_PEERS = 'song-book:peers';
+const STORAGE_PEER_ID = "song-book:peer-id";
+const STORAGE_PEERS = "song-book:peers";
 
 let futurePeer: Promise<Peer> | null = null;
 const connections = new Map<string, DataConnection>();
@@ -29,45 +29,47 @@ function notifyConnectedPeersChange() {
 function sendPeerList(conn: DataConnection, remoteId: string) {
 	if (!partyIdRef) return;
 	const peers = Array.from(connections.keys()).filter((id) => id !== remoteId);
-	conn.send(JSON.stringify({
-		type: 'GOSSIP',
-		partyId: partyIdRef,
-		message: {
-			id: crypto.randomUUID(),
-			type: 'PEER_LIST',
-			payload: { peers },
-		},
-	}));
+	conn.send(
+		JSON.stringify({
+			type: "GOSSIP",
+			partyId: partyIdRef,
+			message: {
+				id: crypto.randomUUID(),
+				type: "PEER_LIST",
+				payload: { peers },
+			},
+		}),
+	);
 }
 
 function setupDataConnection(conn: DataConnection) {
 	const remoteId = conn.peer;
 
-	conn.on('open', () => {
+	conn.on("open", () => {
 		connections.set(remoteId, conn);
 		persistConnectedPeers();
 		notifyConnectedPeersChange();
 		sendPeerList(conn, remoteId);
 	});
 
-	conn.on('data', (raw: unknown) => {
+	conn.on("data", (raw: unknown) => {
 		if (!onMessageRef) return;
 		let message: WireMessage;
 		try {
-			message = typeof raw === 'string' ? JSON.parse(raw) : (raw as WireMessage);
+			message = typeof raw === "string" ? JSON.parse(raw) : (raw as WireMessage);
 		} catch {
 			return;
 		}
 		onMessageRef(remoteId, message);
 	});
 
-	conn.on('close', () => {
+	conn.on("close", () => {
 		connections.delete(remoteId);
 		persistConnectedPeers();
 		notifyConnectedPeersChange();
 	});
 
-	conn.on('error', (err) => {
+	conn.on("error", (err) => {
 		console.warn(`Connection error with ${remoteId}:`, err.message);
 		connections.delete(remoteId);
 		persistConnectedPeers();
@@ -75,14 +77,9 @@ function setupDataConnection(conn: DataConnection) {
 	});
 }
 
-export function usePeer(
-	partyId: string | null,
-	onMessage?: (from: string, message: WireMessage) => void,
-) {
+export function usePeer(partyId: string | null, onMessage?: (from: string, message: WireMessage) => void) {
 	const [peerId, setPeerId] = useState<string | null>(null);
-	const [connectedPeers, setConnectedPeers] = useState<string[]>(() =>
-		Array.from(connections.keys())
-	);
+	const [connectedPeers, setConnectedPeers] = useState<string[]>(() => Array.from(connections.keys()));
 
 	const onMessageSavedRef = useRef(onMessage);
 	onMessageSavedRef.current = onMessage;
@@ -97,7 +94,7 @@ export function usePeer(
 			const storedId = sessionStorage.getItem(STORAGE_PEER_ID);
 			const peer = storedId ? new Peer(storedId) : new Peer();
 
-			peer.on('open', (id) => {
+			peer.on("open", (id) => {
 				resolve(peer);
 				sessionStorage.setItem(STORAGE_PEER_ID, id);
 				setPeerId(id);
@@ -112,25 +109,27 @@ export function usePeer(
 								setupDataConnection(conn);
 							}
 						});
-					} catch { /* corrupted data — ignore */ }
+					} catch {
+						/* corrupted data — ignore */
+					}
 				}
 			});
 
-			peer.on('connection', (conn) => {
+			peer.on("connection", (conn) => {
 				setupDataConnection(conn);
 			});
 
-			peer.on('error', (err) => {
-				console.warn('PeerJS error:', err.message);
+			peer.on("error", (err) => {
+				console.warn("PeerJS error:", err.message);
 			});
 
-			peer.on('disconnected', () => {
+			peer.on("disconnected", () => {
 				if (!peer?.destroyed) {
 					peer?.reconnect();
 				}
 			});
 		});
-	}, [])
+	}, []);
 
 	useEffect(initPeer, [initPeer]);
 
@@ -153,8 +152,7 @@ export function usePeer(
 				reliable: true,
 			});
 			setupDataConnection(conn);
-		})
-
+		});
 	}, []);
 
 	const disconnect = useCallback((remotePeerId: string) => {

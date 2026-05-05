@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 
 const SEARCH_BAR_HEIGHT = 52;
 

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Entry } from '../types';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Entry } from "../types";
 
 // TODO use audio player technology from aisia.ca. Manage multiple audio sources
 
@@ -8,19 +8,13 @@ const FADE_INTERVAL = 50;
 
 async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
 	const enc = new TextEncoder();
-	const keyMaterial = await crypto.subtle.importKey(
-		'raw',
-		enc.encode(password),
-		'PBKDF2',
-		false,
-		['deriveKey'],
-	);
+	const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
 	return crypto.subtle.deriveKey(
-		{ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+		{ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
 		keyMaterial,
-		{ name: 'AES-GCM', length: 256 },
+		{ name: "AES-GCM", length: 256 },
 		false,
-		['decrypt'],
+		["decrypt"],
 	);
 }
 
@@ -31,9 +25,9 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 	const monitorIntervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
 	const dismissedRef = useRef(dismissed);
 	dismissedRef.current = dismissed;
-	const togglePlayRef = useRef<() => void>(() => { });
+	const togglePlayRef = useRef<() => void>(() => {});
 	const isPlayingRef = useRef(false);
-	const blobUrlRef = useRef<string>('');
+	const blobUrlRef = useRef<string>("");
 
 	useEffect(() => {
 		isPlayingRef.current = isPlaying;
@@ -49,7 +43,7 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 			}
 			if (blobUrlRef.current) {
 				URL.revokeObjectURL(blobUrlRef.current);
-				blobUrlRef.current = '';
+				blobUrlRef.current = "";
 			}
 			setIsPlaying(false);
 		};
@@ -72,7 +66,7 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 				audioRef.current = null;
 				if (blobUrlRef.current) {
 					URL.revokeObjectURL(blobUrlRef.current);
-					blobUrlRef.current = '';
+					blobUrlRef.current = "";
 				}
 				setIsPlaying(false);
 			}
@@ -91,25 +85,25 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 		const ms = navigator.mediaSession;
 		if (entry && !dismissed) {
 			ms.metadata = new MediaMetadata({ title: entry.song, artist: entry.artist, album: entry.albumName });
-			ms.playbackState = isPlaying ? 'playing' : 'paused';
-			ms.setActionHandler('play', () => {
+			ms.playbackState = isPlaying ? "playing" : "paused";
+			ms.setActionHandler("play", () => {
 				if (!dismissedRef.current && !audioRef.current) {
 					togglePlayRef.current?.();
 				}
 			});
-			ms.setActionHandler('pause', () => fadeOutAndStopRef.current?.());
-			ms.setActionHandler('stop', () => fadeOutAndStopRef.current?.());
+			ms.setActionHandler("pause", () => fadeOutAndStopRef.current?.());
+			ms.setActionHandler("stop", () => fadeOutAndStopRef.current?.());
 			return () => {
-				ms.setActionHandler('play', null);
-				ms.setActionHandler('pause', null);
-				ms.setActionHandler('stop', null);
+				ms.setActionHandler("play", null);
+				ms.setActionHandler("pause", null);
+				ms.setActionHandler("stop", null);
 			};
 		} else {
-			ms.playbackState = 'none';
+			ms.playbackState = "none";
 			ms.metadata = null;
-			ms.setActionHandler('play', null);
-			ms.setActionHandler('pause', null);
-			ms.setActionHandler('stop', null);
+			ms.setActionHandler("play", null);
+			ms.setActionHandler("pause", null);
+			ms.setActionHandler("stop", null);
 		}
 	}, [entry, dismissed, isPlaying]);
 
@@ -123,7 +117,7 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 		}
 		if (blobUrlRef.current) {
 			URL.revokeObjectURL(blobUrlRef.current);
-			blobUrlRef.current = '';
+			blobUrlRef.current = "";
 		}
 		setIsPlaying(false);
 		togglePlayRef.current();
@@ -135,7 +129,7 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 			return;
 		}
 
-		const password = localStorage.getItem('SONG_PASSWORD');
+		const password = localStorage.getItem("SONG_PASSWORD");
 		if (!password) return;
 
 		const audio = new Audio();
@@ -143,7 +137,7 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 		audioRef.current = audio;
 
 		try {
-			const res = await fetch(`https://braxtonhall.ca/song-book-resources/previews/${entry?.ogg}.ogg.enc`)
+			const res = await fetch(`https://braxtonhall.ca/song-book-resources/previews/${entry?.ogg}.ogg.enc`);
 			const fileBuffer = await res.arrayBuffer();
 			const bytes = new Uint8Array(fileBuffer);
 
@@ -152,13 +146,9 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 			const ciphertext = bytes.slice(28);
 
 			const key = await deriveKey(password, salt);
-			const decrypted = await crypto.subtle.decrypt(
-				{ name: 'AES-GCM', iv },
-				key,
-				ciphertext,
-			);
+			const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
 
-			const blob = new Blob([decrypted], { type: 'audio/ogg' });
+			const blob = new Blob([decrypted], { type: "audio/ogg" });
 			blobUrlRef.current = URL.createObjectURL(blob);
 			audio.src = blobUrlRef.current;
 		} catch (e) {
@@ -188,7 +178,7 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 			audioRef.current = null;
 			if (blobUrlRef.current) {
 				URL.revokeObjectURL(blobUrlRef.current);
-				blobUrlRef.current = '';
+				blobUrlRef.current = "";
 			}
 			setIsPlaying(false);
 		};
@@ -227,21 +217,23 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 		if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
 			startMonitor();
 		} else {
-			audio.addEventListener('loadedmetadata', () => startMonitor());
+			audio.addEventListener("loadedmetadata", () => startMonitor());
 		}
 
-		audio.addEventListener('ended', stop);
+		audio.addEventListener("ended", stop);
 
 		audio.play();
 		fadeIn();
 		setIsPlaying(true);
 	}, [fadeOutAndStop, entry]);
 
-	togglePlayRef.current = () => { togglePlay(); };
+	togglePlayRef.current = () => {
+		togglePlay();
+	};
 
 	return (
 		<button className="detail-panel__play-button" onClick={togglePlay}>
-			{isPlaying ? '\u23F9' : '\u25B6'}
+			{isPlaying ? "\u23F9" : "\u25B6"}
 		</button>
 	);
 }

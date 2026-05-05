@@ -1,4 +1,4 @@
-import {useEffect, useState, useCallback} from "react";
+import { useEffect, useState, useCallback } from "react";
 
 function checksum(str: string): string {
 	let crc = 0 ^ -1;
@@ -69,5 +69,5 @@ export function useSongPassword(): { password: string | null; setPassword: (pw: 
 		window.dispatchEvent(new Event("songPasswordChange"));
 	}, []);
 
-	return {password, setPassword};
+	return { password, setPassword };
 }

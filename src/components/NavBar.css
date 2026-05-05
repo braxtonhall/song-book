@@ -83,11 +83,25 @@
 }
 
 @keyframes toast-pop {
-	0% { opacity: 0; transform: scale(0.5) translateY(4px); }
-	15% { opacity: 1; transform: scale(1.15) translateY(0); }
-	25% { transform: scale(1) translateY(0); }
-	70% { opacity: 1; transform: scale(1) translateY(0); }
-	100% { opacity: 0; transform: scale(0.8) translateY(-6px); }
+	0% {
+		opacity: 0;
+		transform: scale(0.5) translateY(4px);
+	}
+	15% {
+		opacity: 1;
+		transform: scale(1.15) translateY(0);
+	}
+	25% {
+		transform: scale(1) translateY(0);
+	}
+	70% {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(0.8) translateY(-6px);
+	}
 }
 
 .nav-bar__badge {

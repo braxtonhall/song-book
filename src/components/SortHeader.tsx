@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
-import './SortHeader.css';
+import React, { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
+import "./SortHeader.css";
 
-export type SortBy = 'song' | 'artist';
+export type SortBy = "song" | "artist";
 
 const SORT_LABELS: Record<SortBy, string> = {
-	song: 'Song Title',
-	artist: 'Artist Name',
+	song: "Song Title",
+	artist: "Artist Name",
 };
 
-const SORT_OPTIONS: SortBy[] = ['song', 'artist'];
+const SORT_OPTIONS: SortBy[] = ["song", "artist"];
 
 export function SortHeader({
 	style,
@@ -21,7 +21,7 @@ export function SortHeader({
 	onSortChange: (s: SortBy) => void;
 }) {
 	const [menuOpen, setMenuOpen] = useState(false);
-	const [menuPos, setMenuPos] = useState<{top: number; left: number} | null>(null);
+	const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const menuRef = useRef<HTMLDivElement>(null);
 
@@ -30,7 +30,7 @@ export function SortHeader({
 			setMenuOpen(false);
 		} else {
 			const rect = e.currentTarget.getBoundingClientRect();
-			setMenuPos({top: rect.bottom + 4, left: rect.left});
+			setMenuPos({ top: rect.bottom + 4, left: rect.left });
 			setMenuOpen(true);
 		}
 	};
@@ -42,8 +42,8 @@ export function SortHeader({
 				setMenuOpen(false);
 			}
 		};
-		document.addEventListener('mousedown', handler);
-		return () => document.removeEventListener('mousedown', handler);
+		document.addEventListener("mousedown", handler);
+		return () => document.removeEventListener("mousedown", handler);
 	}, [menuOpen]);
 
 	return (
@@ -56,23 +56,25 @@ export function SortHeader({
 				</svg>
 				Sorted by {SORT_LABELS[sortBy]}
 			</button>
-			{menuOpen && menuPos && ReactDOM.createPortal(
-				<div ref={menuRef} className="sort-menu" style={{top: menuPos.top, left: menuPos.left}}>
-					{SORT_OPTIONS.map(option => (
-						<button
-							key={option}
-							className={`sort-menu-item${option === sortBy ? ' sort-menu-item--active' : ''}`}
-							onClick={() => {
-								onSortChange(option);
-								setMenuOpen(false);
-							}}
-						>
-							{SORT_LABELS[option]}
-						</button>
-					))}
-				</div>,
-				document.body,
-			)}
+			{menuOpen &&
+				menuPos &&
+				ReactDOM.createPortal(
+					<div ref={menuRef} className="sort-menu" style={{ top: menuPos.top, left: menuPos.left }}>
+						{SORT_OPTIONS.map((option) => (
+							<button
+								key={option}
+								className={`sort-menu-item${option === sortBy ? " sort-menu-item--active" : ""}`}
+								onClick={() => {
+									onSortChange(option);
+									setMenuOpen(false);
+								}}
+							>
+								{SORT_LABELS[option]}
+							</button>
+						))}
+					</div>,
+					document.body,
+				)}
 		</div>
 	);
 }

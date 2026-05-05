@@ -1,5 +1,5 @@
-import { useEffect, useCallback } from 'react';
-import { WireMessage, PeerStatus } from '../partyTypes';
+import { useEffect, useCallback } from "react";
+import { WireMessage, PeerStatus } from "../partyTypes";
 
 const PEER_MISS_THRESHOLD_ABSENT = 2;
 const PEER_MISS_THRESHOLD_REMOVED = 4;
@@ -23,20 +23,20 @@ export function usePeerLiveness(
 			missCounts.set(id, misses);
 
 			if (misses >= PEER_MISS_THRESHOLD_REMOVED) {
-				peerStatuses.set(id, 'removed');
+				peerStatuses.set(id, "removed");
 				disconnect(id);
 				missCounts.delete(id);
 				peerStatuses.delete(id);
 			} else if (misses >= PEER_MISS_THRESHOLD_ABSENT) {
-				peerStatuses.set(id, 'absent');
+				peerStatuses.set(id, "absent");
 			} else {
-				peerStatuses.set(id, 'active');
+				peerStatuses.set(id, "active");
 			}
 		}
 
 		if (partyId) {
 			for (const id of peerIds) {
-				send(id, { type: 'PING', partyId });
+				send(id, { type: "PING", partyId });
 			}
 		}
 
@@ -69,7 +69,7 @@ export function usePeerLiveness(
 
 	const markAlive = useCallback((peerId: string) => {
 		missCounts.set(peerId, 0);
-		peerStatuses.set(peerId, 'active');
+		peerStatuses.set(peerId, "active");
 	}, []);
 
 	const getPeerStatuses = useCallback((): Map<string, PeerStatus> => {
