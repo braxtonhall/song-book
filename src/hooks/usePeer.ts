@@ -147,6 +147,12 @@ export function usePeer(onMessage?: (from: string, message: WireMessage) => void
 		connections.forEach((conn) => conn.close());
 		connections.clear();
 		sessionStorage.removeItem(STORAGE_PEERS);
+		sessionStorage.removeItem(STORAGE_PEER_ID);
+		if (futurePeer) {
+			futurePeer.then((peer) => peer.destroy());
+		}
+		futurePeer = null;
+		setPeerId(null);
 		notifyConnectedPeersChange();
 	}, []);
 
