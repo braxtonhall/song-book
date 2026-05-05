@@ -3,97 +3,221 @@ import * as Y from 'yjs';
 import { Entry } from '../types';
 import { QueueEntry, HistoryEntry } from '../partyTypes';
 
-const CRDT_KEY = 'song-book:queue-crdt';
+const SOLO_KEY = 'song-book:queue-solo';
+const PARTY_QUEUE_KEY = 'song-book:queue-party';
 
-const doc = new Y.Doc();
-const yQueue: Y.Array<QueueEntry> = doc.getArray('queue');
-const yDismissed: Y.Map<boolean> = doc.getMap('dismissed');
-
-// Restore previous CRDT state if it exists
+// ── Module-level solo state ─────────────────────────────────────────────────
+let soloQueue: QueueEntry[] = [];
 try {
-	const raw = localStorage.getItem(CRDT_KEY);
-	if (raw) {
-		const update = new Uint8Array(atob(raw).split('').map(c => c.charCodeAt(0)));
-		Y.applyUpdate(doc, update);
-	}
+	const raw = localStorage.getItem(SOLO_KEY);
+	if (raw) soloQueue = JSON.parse(raw);
 } catch {
-	// corrupted data — start fresh
+	soloQueue = [];
 }
 
-// Persist on every update, debounced
-let saveTimer: ReturnType<typeof setTimeout> | null = null;
-doc.on('update', () => {
-	if (saveTimer) clearTimeout(saveTimer);
-	saveTimer = setTimeout(() => {
-		const state = Y.encodeStateAsUpdate(doc);
-		const binary = String.fromCharCode(...state);
-		localStorage.setItem(CRDT_KEY, btoa(binary));
-	}, 200);
-});
+function persistSolo() {
+	localStorage.setItem(SOLO_KEY, JSON.stringify(soloQueue));
+}
 
+// ── Module-level party state (lazily initialized) ───────────────────────────
+let currentMode: 'solo' | 'party' = 'solo';
+let doc: Y.Doc | null = null;
+let yQueue: Y.Array<QueueEntry> | null = null;
+let yDismissed: Y.Map<boolean> | null = null;
+let partySaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function persistParty() {
+	if (!doc) return;
+	const state = Y.encodeStateAsUpdate(doc);
+	const binary = String.fromCharCode(...state);
+	sessionStorage.setItem(PARTY_QUEUE_KEY, btoa(binary));
+}
+
+// ── Module init: if reconnecting or joining via URL, enter party mode ───────
+try {
+	const params = new URLSearchParams(window.location.search);
+	const urlPartyId = params.get('party');
+	const storedPartyId = sessionStorage.getItem('song-book:party-id');
+
+	if (urlPartyId || storedPartyId) {
+		currentMode = 'party';
+		if (urlPartyId) {
+			sessionStorage.setItem('song-book:party-id', urlPartyId);
+		}
+
+		doc = new Y.Doc();
+		yQueue = doc.getArray('queue');
+		yDismissed = doc.getMap('dismissed');
+
+		const raw = sessionStorage.getItem(PARTY_QUEUE_KEY);
+		if (raw) {
+			const update = new Uint8Array(atob(raw).split('').map(c => c.charCodeAt(0)));
+			Y.applyUpdate(doc, update);
+		}
+
+		doc.on('update', () => {
+			if (partySaveTimer) clearTimeout(partySaveTimer);
+			partySaveTimer = setTimeout(persistParty, 200);
+		});
+	}
+} catch {
+	currentMode = 'solo';
+}
+
+function enterPartyMode(partyId: string, copySolo: boolean) {
+	if (currentMode === 'party') return;
+
+	persistSolo();
+
+	doc = new Y.Doc();
+	yQueue = doc.getArray('queue');
+	yDismissed = doc.getMap('dismissed');
+
+	if (copySolo && soloQueue.length > 0) {
+		yQueue.push(soloQueue.map(qe => ({
+			uuid: crypto.randomUUID(),
+			entry: qe.entry,
+		})));
+	}
+
+	doc.on('update', () => {
+		if (partySaveTimer) clearTimeout(partySaveTimer);
+		partySaveTimer = setTimeout(persistParty, 200);
+	});
+
+	currentMode = 'party';
+	sessionStorage.setItem('song-book:party-id', partyId);
+}
+
+function leavePartyMode() {
+	if (currentMode === 'solo') return;
+
+	persistParty();
+	doc?.destroy();
+	doc = null;
+	yQueue = null;
+	yDismissed = null;
+	if (partySaveTimer) {
+		clearTimeout(partySaveTimer);
+		partySaveTimer = null;
+	}
+
+	sessionStorage.removeItem('song-book:party-id');
+	sessionStorage.removeItem(PARTY_QUEUE_KEY);
+
+	currentMode = 'solo';
+}
+
+// ── Hook ────────────────────────────────────────────────────────────────────
 export function useQueue() {
-	const [queue, setQueue] = useState<QueueEntry[]>(() => yQueue.toArray());
+	const [queue, setQueue] = useState<QueueEntry[]>(() => {
+		if (currentMode === 'party' && yQueue) return yQueue.toArray();
+		return soloQueue;
+	});
 	const [, setHistory] = useState<HistoryEntry[]>([]);
+	const [partyVersion, setPartyVersion] = useState(0);
 
-	// ── Sync yjs array changes to React state ───────────────────────────────
+	// ── Solo: react to storage events (cross-tab sync, unlikely but correct) ─
 	useEffect(() => {
+		if (currentMode !== 'solo') return;
 		const handler = () => {
-			setQueue(yQueue.toArray());
+			const raw = localStorage.getItem(SOLO_KEY);
+			if (raw) {
+				try {
+					soloQueue = JSON.parse(raw);
+					setQueue(soloQueue);
+				} catch { /* ignore */ }
+			}
 		};
-		yQueue.observe(handler);
-		return () => yQueue.unobserve(handler);
+		window.addEventListener('storage', handler);
+		return () => window.removeEventListener('storage', handler);
 	}, []);
 
-	// ── Dismissed-map observer → history + array cleanup ────────────────────
+	// ── Party: sync yjs array to React state ─────────────────────────────────
 	useEffect(() => {
+		if (currentMode !== 'party' || !yQueue) return;
+		const handler = () => setQueue(yQueue!.toArray());
+		yQueue.observe(handler);
+		setQueue(yQueue.toArray());
+		return () => { yQueue?.unobserve(handler); };
+	}, [partyVersion]);
+
+	// ── Party: dismissed-map observer → history + array cleanup ──────────────
+	useEffect(() => {
+		if (currentMode !== 'party' || !yDismissed) return;
 		const handler = (event: Y.YMapEvent<boolean>) => {
 			for (const key of event.keysChanged) {
 				if (event.target.get(key) !== true) continue;
-
-				const array = yQueue.toArray();
+				const array = yQueue!.toArray();
 				const idx = array.findIndex(e => e.uuid === key);
 				if (idx === -1) continue;
-
-				const entry = yQueue.get(idx).entry;
-
-				setHistory(h => [
-					...h,
-					{
-						entry,
-						partyId: null,
-						dismissedAt: new Date().toISOString(),
-					},
-				]);
-
-				yQueue.delete(idx, 1);
+				const entry = yQueue!.get(idx).entry;
+				setHistory(h => [...h, {
+					entry,
+					partyId: sessionStorage.getItem('song-book:party-id'),
+					dismissedAt: new Date().toISOString(),
+				}]);
+				yQueue!.delete(idx, 1);
 			}
 		};
 		yDismissed.observe(handler);
-		return () => yDismissed.unobserve(handler);
-	}, []);
+		return () => { yDismissed?.unobserve(handler); };
+	}, [partyVersion]);
 
-	// ── GC: clear dismissed map when queue is empty ─────────────────────────
-	useEffect(() => {
-		// TODO BJH this NEEDS to be guarded behind local only mode. if there is a party, no clearing allowed.
-		if (queue.length === 0) {
-			yDismissed.clear();
-		}
-	}, [queue]);
-
-	// ── Queue operations ────────────────────────────────────────────────────
+	// ── Operations ───────────────────────────────────────────────────────────
 	const addToQueue = useCallback((entry: Entry) => {
-		yQueue.push([{ uuid: crypto.randomUUID(), entry }]);
+		if (currentMode === 'party' && yQueue) {
+			yQueue.push([{ uuid: crypto.randomUUID(), entry }]);
+		} else {
+			soloQueue = [...soloQueue, { uuid: crypto.randomUUID(), entry }];
+			persistSolo();
+			setQueue(soloQueue);
+		}
 	}, []);
 
 	const reorderQueue = useCallback((fromIndex: number, toIndex: number) => {
-		const entry = yQueue.get(fromIndex);
-		yQueue.delete(fromIndex, 1);
-		yQueue.insert(toIndex, [entry]);
+		if (currentMode === 'party' && yQueue) {
+			const entry = yQueue.get(fromIndex);
+			yQueue.delete(fromIndex, 1);
+			yQueue.insert(toIndex, [entry]);
+		} else {
+			const copy = [...soloQueue];
+			const [item] = copy.splice(fromIndex, 1);
+			copy.splice(toIndex, 0, item);
+			soloQueue = copy;
+			persistSolo();
+			setQueue(soloQueue);
+		}
 	}, []);
 
 	const dismissFromQueue = useCallback((uuid: string) => {
-		yDismissed.set(uuid, true);
+		if (currentMode === 'party' && yDismissed) {
+			yDismissed.set(uuid, true);
+		} else {
+			const entry = soloQueue.find(e => e.uuid === uuid);
+			if (!entry) return;
+			soloQueue = soloQueue.filter(e => e.uuid !== uuid);
+			persistSolo();
+			setQueue(soloQueue);
+			setHistory(h => [...h, {
+				entry: entry.entry,
+				partyId: null,
+				dismissedAt: new Date().toISOString(),
+			}]);
+		}
 	}, []);
 
-	return { queue, addToQueue, reorderQueue, dismissFromQueue };
+	const enterParty = useCallback((partyId: string, copySolo: boolean) => {
+		enterPartyMode(partyId, copySolo);
+		setPartyVersion(v => v + 1);
+		setQueue(yQueue!.toArray());
+	}, []);
+
+	const leaveParty = useCallback(() => {
+		leavePartyMode();
+		setPartyVersion(v => v + 1);
+		setQueue(soloQueue);
+	}, []);
+
+	return { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty };
 }
