@@ -1,3 +1,5 @@
+const VOCABULARY = ["Accuracy", "Album", "Alternative", "Amplifier", "Animation", "Avatar", "Axe", "Bandmate", "Bar", "Bass", "Beat", "Boy", "Calibration", "Campaign", "Challenge", "Chart", "Chords", "Classic", "Combo", "Concert", "Controller", "Crowd", "Cymbals", "Delay", "Difficulty", "Distortion", "Drummer", "Drums", "Dude", "Dynamics", "Effects", "Encore", "Energy", "Fans", "Feedback", "Fix", "Freestyle", "Frets", "Game", "Gamer", "Gem", "Genre", "Girl", "Good", "Groove", "Grunge", "Guitar", "Harmonic", "Harmony", "Headbang", "Headliner", "Highway", "Hit", "Improvisation", "Indie", "Input", "Jam", "Keys", "Kick", "Late", "Leaderboard", "Level", "Loop", "Melody", "Metal", "Metronome", "Microphone", "Miss", "Mode", "Multiplayer", "Multiplier", "Note", "Notes", "Overdrive", "Pedal", "Perfect", "Performance", "Playlist", "Practice", "Practice mode", "Pro", "Punk", "Ranking", "Recording", "Remix", "Reverb", "Rhythm", "Riff", "Rock", "Rocker", "Sampling", "Score", "Setlist", "Skill", "Snare", "Solo", "Spotlight", "Stage", "Star", "Streak", "Strings", "Strum", "Studio", "Sync", "Syncopation", "Tabs", "Tempo", "Timing", "Tone", "Tour", "Track", "Tracklist", "Unlock", "Visuals", "Vocals", "Volume", "Vox", "Wah", "Whammy"];
+
 export function stringToColour(str: string): string {
 	let hash = 0;
 
@@ -28,7 +30,7 @@ export function hashString(str: string): number {
 	return h;
 }
 
-export function toHumanIdentifier(id: string, count: number, vocabulary: string[]): string {
+function toHumanIdentifier(id: string, count: number, vocabulary: string[]): string {
 	if (vocabulary.length < count) {
 		throw new Error(`Vocabulary must contain at least ${count} items`);
 	}
@@ -54,3 +56,6 @@ export function toHumanIdentifier(id: string, count: number, vocabulary: string[
 
 	return `${chosen.join('')}#${digits}`;
 }
+
+export const getRockerId = (id: string): string =>
+	toHumanIdentifier(id, 3, VOCABULARY);

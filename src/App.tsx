@@ -5,19 +5,20 @@ import { DetailPanel } from './components/DetailPanel';
 import { NavBar } from './components/NavBar';
 import { LibraryPage } from './pages/LibraryPage';
 import { QueuePage } from './pages/QueuePage';
+import { HistoryPage } from './pages/HistoryPage';
 import { PartyPage } from './pages/PartyPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { useLandscape } from './hooks/useLandscape';
 import { useQueue } from './hooks/useQueue';
 import { usePeer } from './hooks/usePeer';
 import { useGossip } from './hooks/useGossip';
-import { useHistory, getHistoryForParty, mergeHistoryEntries } from './hooks/useHistory';
+import { useHistory, getHistoryForParty, mergeHistoryEntries, removeHistoryEntry, clearHistory } from './hooks/useHistory';
 import { usePeerLiveness } from './hooks/usePeerLiveness';
 import { useSongPassword } from './hooks/useSongPassword';
 import './App.css';
 import './pages/PartyPage.css';
 
-type PageId = 'library' | 'queue' | 'party' | 'settings';
+type PageId = 'library' | 'queue' | 'history' | 'party' | 'settings';
 
 function App() {
   const landscape = useLandscape();
@@ -26,7 +27,7 @@ function App() {
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [sheetDismissed, setSheetDismissed] = useState(true);
   const { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode, getSyncUpdate, applyRemoteUpdate, setOnLocalUpdate } = useQueue();
-  useHistory();
+  const { history } = useHistory();
   const [queueToasts, setQueueToasts] = useState<number[]>([]);
   const [partyBadge, setPartyBadge] = useState(false);
   const partyPeerBaselineRef = useRef(0);
@@ -412,6 +413,14 @@ function App() {
     setSheetDismissed(false);
   }, []);
 
+  const handleRemoveHistory = useCallback((uuid: string) => {
+    removeHistoryEntry(uuid);
+  }, []);
+
+  const handleClearHistory = useCallback(() => {
+    clearHistory();
+  }, []);
+
   // TODO I don't like that this happens every single render
   const statuses = getPeerStatuses();
   const peers = connectedPeers.map((peer) => ({ peer, status: statuses.get(peer) ?? 'removed' }));
@@ -442,6 +451,16 @@ function App() {
             queue={queue}
             onReorder={reorderQueue}
             onDismiss={dismissFromQueue}
+            onSelect={handleSelect}
+            selectedEntryId={selectedEntry?.id ?? null}
+            panelOpen={!sheetDismissed}
+          />
+        )}
+        {page === 'history' && (
+          <HistoryPage
+            history={history}
+            onRemove={handleRemoveHistory}
+            onClear={handleClearHistory}
             onSelect={handleSelect}
             selectedEntryId={selectedEntry?.id ?? null}
             panelOpen={!sheetDismissed}

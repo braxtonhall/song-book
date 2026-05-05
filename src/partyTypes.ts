@@ -6,6 +6,7 @@ export type QueueEntry = {
 };
 
 export type HistoryEntry = {
+	uuid: string;
 	entry: Entry;
 	partyId: string | null;
 	dismissedAt: string;

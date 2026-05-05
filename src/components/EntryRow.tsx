@@ -17,6 +17,8 @@ export type EntryRowProps = {
 	onDismiss?: (index: number) => void;
 	onDismissSwipe?: (index: number) => void;
 	isDragging?: boolean;
+	swipeIcon?: React.ReactNode;
+	swipeBgColor?: string;
 };
 
 const SWIPE_THRESHOLD = 80;
@@ -26,6 +28,7 @@ export function EntryRow({
 	onAddToQueue, onSwipeChange,
 	showDragHandle, onDragStart, showDismissButton, onDismiss, onDismissSwipe,
 	isDragging,
+	swipeIcon: customSwipeIcon, swipeBgColor: customSwipeBgColor,
 }: RowComponentProps<EntryRowProps>) {
 	const entry = entries[index];
 
@@ -142,11 +145,16 @@ export function EntryRow({
 		? `translateX(${swipeOffset}px)`
 		: undefined;
 
-	const swipeIcon = isDismiss ? (
+	const swipeIcon = customSwipeIcon || (isDismiss ? (
 		<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
 	) : (
 		<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-	);
+	));
+
+	const swipeBgColor = customSwipeBgColor ?? '#ffb300';
+	const swipeBgIconColor = customSwipeBgColor
+		? '#fff'
+		: crossedThreshold ? '#1a1100' : '#fff';
 
 	return (
 		<div
@@ -158,12 +166,12 @@ export function EntryRow({
 			<div
 				className="entry-row__swipe-bg"
 				style={{
-					backgroundColor: crossedThreshold ? '#ffb300' : 'transparent',
+					backgroundColor: crossedThreshold ? swipeBgColor : 'transparent',
 				}}
 			>
 				<svg
 					className="entry-row__swipe-icon"
-					style={{ opacity: leftIconOpacity, color: crossedThreshold ? '#1a1100' : '#fff' }}
+					style={{ opacity: leftIconOpacity, color: swipeBgIconColor }}
 					viewBox="0 0 24 24"
 					width="24"
 					height="24"
@@ -174,7 +182,7 @@ export function EntryRow({
 				</svg>
 				<svg
 					className="entry-row__swipe-icon"
-					style={{ opacity: rightIconOpacity, color: crossedThreshold ? '#1a1100' : '#fff' }}
+					style={{ opacity: rightIconOpacity, color: swipeBgIconColor }}
 					viewBox="0 0 24 24"
 					width="24"
 					height="24"

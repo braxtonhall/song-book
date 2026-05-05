@@ -22,8 +22,24 @@ function notify() {
 	listeners.forEach(fn => fn());
 }
 
-export function addHistoryEntry(entry: HistoryEntry) {
-	history = [...history, entry];
+export function addHistoryEntry(entry: Omit<HistoryEntry, 'uuid'> & { uuid?: string }) {
+	const withUuid: HistoryEntry = {
+		...entry,
+		uuid: entry.uuid || crypto.randomUUID(),
+	};
+	history = [...history, withUuid];
+	persist();
+	notify();
+}
+
+export function removeHistoryEntry(uuid: string) {
+	history = history.filter(e => e.uuid !== uuid);
+	persist();
+	notify();
+}
+
+export function clearHistory() {
+	history = [];
 	persist();
 	notify();
 }
@@ -33,8 +49,10 @@ export function getHistoryForParty(partyId: string): HistoryEntry[] {
 }
 
 export function mergeHistoryEntries(entries: HistoryEntry[]) {
-	const existingIds = new Set(history.map(e => e.entry.id));
-	const newEntries = entries.filter(e => !existingIds.has(e.entry.id));
+	const existingIds = new Set(history.map(e => e.uuid));
+	const newEntries = entries
+		.filter(e => !existingIds.has(e.uuid))
+		.map(e => e.uuid ? e : { ...e, uuid: crypto.randomUUID() });
 	if (newEntries.length > 0) {
 		history = [...history, ...newEntries];
 		persist();

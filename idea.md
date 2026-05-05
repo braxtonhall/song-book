@@ -17,4 +17,3 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - Copy buttons should respond to being clicked
 - Gossip protocol should know about parties. Only gossip the current party.
 - If we exchange the complete peer list on connection, is the gossip really necessary?
-- We need a history page
