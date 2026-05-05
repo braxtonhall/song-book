@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSongPassword, validSongPassword } from '../hooks/useSongPassword';
+import { CopyButton } from '../components/CopyButton';
 import './Page.css';
 import './SettingsPage.css';
 
@@ -13,12 +14,6 @@ export function SettingsPage() {
 		setPassword(inputValue || null);
 	};
 
-	const handleCopy = () => {
-		if (password) {
-			navigator.clipboard.writeText(password);
-		}
-	};
-
 	return (
 		<div className="page page--settings">
 			<h2 className="settings__title">Song Password</h2>
@@ -30,9 +25,7 @@ export function SettingsPage() {
 					onChange={(e) => setInputValue(e.target.value)}
 					placeholder="Enter song password"
 				/>
-				<button className="settings__btn settings__btn--copy" onClick={handleCopy} disabled={!password}>
-					Copy
-				</button>
+				<CopyButton size="md" text={password ?? ''} disabled={!password} />
 			</div>
 			<button className="settings__btn settings__btn--save" onClick={handleSave} disabled={!isValid || !hasChanged}>
 				{inputValue ? 'Save' : 'Remove'}

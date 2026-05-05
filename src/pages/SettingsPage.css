@@ -62,15 +62,6 @@
 	cursor: default;
 }
 
-.settings__btn--copy {
-	background: rgba(255, 255, 255, 0.1);
-	color: rgba(255, 255, 255, 0.8);
-}
-
-.settings__btn--copy:hover:not(:disabled) {
-	background: rgba(255, 255, 255, 0.18);
-}
-
 .settings__btn--save {
 	background: rgba(255, 255, 255, 0.1);
 	color: rgba(255, 255, 255, 0.8);

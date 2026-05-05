@@ -1,5 +1,6 @@
 import React from 'react';
 import { QRCode } from '../components/QRCode';
+import { CopyButton } from '../components/CopyButton';
 import './Page.css';
 import './PartyPage.css';
 import { PeerStatus } from '../partyTypes';
@@ -84,12 +85,7 @@ export function PartyPage({
 							</div>
 							<div className="party-url">
 								<span className="party-url__text">{url}</span>
-								<button
-									className="party-url__copy"
-									onClick={() => navigator.clipboard.writeText(url)}
-								>
-									Copy
-								</button>
+								<CopyButton text={url} />
 							</div>
 						</>
 					) : (

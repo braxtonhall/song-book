@@ -243,27 +243,6 @@
 	font-size: 12px;
 }
 
-.party-url__copy {
-	flex-shrink: 0;
-	padding: 4px 14px;
-	border: none;
-	border-radius: 6px;
-	background: rgba(255, 255, 255, 0.12);
-	color: rgba(255, 255, 255, 0.7);
-	font-size: 12px;
-	font-weight: 500;
-	cursor: pointer;
-	transition: background 0.15s;
-}
-
-.party-url__copy:hover {
-	background: rgba(255, 255, 255, 0.2);
-}
-
-.party-url__copy:active {
-	transform: scale(0.97);
-}
-
 /* ── Leave ── */
 
 .party-leave {

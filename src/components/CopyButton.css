@@ -1,0 +1,42 @@
+.copy-btn {
+	flex-shrink: 0;
+	padding: 4px 14px;
+	border: none;
+	border-radius: 6px;
+	background: rgba(255, 255, 255, 0.12);
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	transition:
+		background 0.2s,
+		color 0.2s;
+}
+
+.copy-btn:hover {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.copy-btn:active {
+	transform: scale(0.97);
+}
+
+.copy-btn--md {
+	padding: 10px 16px;
+	font-size: 14px;
+	border-radius: 8px;
+}
+
+.copy-btn.copy-btn--success {
+	background: #ffb300;
+	color: #121212;
+}
+
+.copy-btn.copy-btn--success:hover {
+	background: #ffb300;
+}
+
+.copy-btn:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
