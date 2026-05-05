@@ -11,6 +11,7 @@ import { useLandscape } from './hooks/useLandscape';
 import { useQueue } from './hooks/useQueue';
 import { usePeer } from './hooks/usePeer';
 import { useGossip } from './hooks/useGossip';
+import { useHistory, getHistoryForParty, mergeHistoryEntries } from './hooks/useHistory';
 import { usePeerLiveness } from './hooks/usePeerLiveness';
 import { useSongPassword } from './hooks/useSongPassword';
 import './App.css';
@@ -25,6 +26,7 @@ function App() {
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [sheetDismissed, setSheetDismissed] = useState(true);
   const { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode, getSyncUpdate, applyRemoteUpdate, setOnLocalUpdate } = useQueue();
+  useHistory();
   const [queueToasts, setQueueToasts] = useState<number[]>([]);
   const { password } = useSongPassword();
   const [partyId, setPartyId] = useState<string | null>(
@@ -75,6 +77,14 @@ function App() {
         break;
       case 'PONG':
         livenessRef.current?.markAlive(from);
+        break;
+      case 'HISTORY_REQUEST': {
+        const entries = getHistoryForParty(message.partyId);
+        send(from, { type: 'HISTORY_RESPONSE', partyId: message.partyId, entries });
+        break;
+      }
+      case 'HISTORY_RESPONSE':
+        mergeHistoryEntries(message.entries);
         break;
     }
   });
@@ -268,6 +278,7 @@ function App() {
 
       setJoiningStep('requesting');
       if (partyId) send(initialPeerId, { type: 'PEER_LIST_REQUEST', partyId });
+      if (partyId) send(initialPeerId, { type: 'HISTORY_REQUEST', partyId });
     }
   }, [joiningStep, connectedPeers, send, partyId]);
 

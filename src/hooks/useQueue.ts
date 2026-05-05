@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as Y from 'yjs';
 import { Entry } from '../types';
-import { QueueEntry, HistoryEntry } from '../partyTypes';
+import { QueueEntry } from '../partyTypes';
+import { addHistoryEntry } from './useHistory';
 
 const SOLO_KEY = 'song-book:queue-solo';
 const PARTY_QUEUE_KEY = 'song-book:queue-party';
@@ -133,7 +134,6 @@ export function useQueue() {
 		if (currentMode === 'party' && yQueue) return yQueue.toArray();
 		return soloQueue;
 	});
-	const [, setHistory] = useState<HistoryEntry[]>([]);
 	const [partyVersion, setPartyVersion] = useState(0);
 	const [mode, setMode] = useState<'solo' | 'party'>(currentMode);
 
@@ -190,12 +190,12 @@ export function useQueue() {
 				const idx = array.findIndex(e => e.uuid === key);
 				if (idx === -1) continue;
 				const entry = yq!.get(idx).entry;
-				setHistory(h => [...h, {
-					entry,
-					partyId: sessionStorage.getItem('song-book:party-id'),
-					dismissedAt: new Date().toISOString(),
-				}]);
-				yq!.delete(idx, 1);
+			addHistoryEntry({
+				entry,
+				partyId: sessionStorage.getItem('song-book:party-id'),
+				dismissedAt: new Date().toISOString(),
+			});
+			yq!.delete(idx, 1);
 			}
 		};
 		yd.observe(handler);
@@ -237,11 +237,11 @@ export function useQueue() {
 			soloQueue = soloQueue.filter(e => e.uuid !== uuid);
 			persistSolo();
 			setQueue(soloQueue);
-			setHistory(h => [...h, {
-				entry: entry.entry,
-				partyId: null,
-				dismissedAt: new Date().toISOString(),
-			}]);
+		addHistoryEntry({
+			entry: entry.entry,
+			partyId: null,
+			dismissedAt: new Date().toISOString(),
+		});
 		}
 	}, []);
 
