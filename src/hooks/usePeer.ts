@@ -148,6 +148,8 @@ export function usePeer(onMessage?: (from: string, message: WireMessage) => void
 		conn.send(JSON.stringify(message));
 	}, []);
 
+	const getPeerIds = useCallback(() => Array.from(connections.keys()), []);
+
 	return {
 		peerId,
 		connect,
@@ -155,5 +157,6 @@ export function usePeer(onMessage?: (from: string, message: WireMessage) => void
 		disconnectAll,
 		send,
 		connectedPeers,
+		getPeerIds,
 	};
 }
