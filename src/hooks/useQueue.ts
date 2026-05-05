@@ -19,6 +19,14 @@ function persistSolo() {
 	localStorage.setItem(SOLO_KEY, JSON.stringify(soloQueue));
 }
 
+// ── Cross-instance sync ─────────────────────────────────────────────────────
+type QueueStateListener = () => void;
+const queueStateListeners = new Set<QueueStateListener>();
+
+function notifyQueueState() {
+	queueStateListeners.forEach(fn => fn());
+}
+
 // ── Module-level party state (lazily initialized) ───────────────────────────
 let currentMode: 'solo' | 'party' = 'solo';
 let doc: Y.Doc | null = null;
@@ -82,6 +90,7 @@ function enterPartyMode(partyId: string, copySolo: boolean) {
 
 	currentMode = 'party';
 	sessionStorage.setItem('song-book:party-id', partyId);
+	notifyQueueState();
 }
 
 function leavePartyMode() {
@@ -101,6 +110,7 @@ function leavePartyMode() {
 	sessionStorage.removeItem(PARTY_QUEUE_KEY);
 
 	currentMode = 'solo';
+	notifyQueueState();
 }
 
 // ── Hook ────────────────────────────────────────────────────────────────────
@@ -112,6 +122,21 @@ export function useQueue() {
 	const [, setHistory] = useState<HistoryEntry[]>([]);
 	const [partyVersion, setPartyVersion] = useState(0);
 	const [mode, setMode] = useState<'solo' | 'party'>(currentMode);
+
+	// ── Cross-instance sync: update this hook's state when mode changes ────────
+	useEffect(() => {
+		const listener = () => {
+			if (currentMode === 'party' && yQueue) {
+				setQueue(yQueue.toArray());
+			} else {
+				setQueue(soloQueue);
+			}
+			setMode(currentMode);
+			setPartyVersion(v => v + 1);
+		};
+		queueStateListeners.add(listener);
+		return () => { queueStateListeners.delete(listener); };
+	}, []);
 
 	// ── Solo: react to storage events (cross-tab sync, unlikely but correct) ─
 	useEffect(() => {
@@ -205,16 +230,10 @@ export function useQueue() {
 
 	const enterParty = useCallback((partyId: string, copySolo: boolean) => {
 		enterPartyMode(partyId, copySolo);
-		setPartyVersion(v => v + 1);
-		setQueue(yQueue!.toArray());
-		setMode('party');
 	}, []);
 
 	const leaveParty = useCallback(() => {
 		leavePartyMode();
-		setPartyVersion(v => v + 1);
-		setQueue(soloQueue);
-		setMode('solo');
 	}, []);
 
 	return { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode: mode };
