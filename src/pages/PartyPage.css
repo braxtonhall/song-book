@@ -162,3 +162,36 @@
 .party-leave:hover {
 	background: rgba(211, 47, 47, 0.25);
 }
+
+/* ── Error ── */
+
+.party-error {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 20px;
+}
+
+.party-error p {
+	color: #d32f2f;
+	font-size: 16px;
+	font-weight: 500;
+	text-align: center;
+	margin: 0;
+}
+
+.party-error__retry {
+	padding: 10px 28px;
+	border: none;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+.party-error__retry:hover {
+	background: rgba(255, 255, 255, 0.18);
+}

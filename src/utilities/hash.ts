@@ -19,13 +19,38 @@ export function stringToColour(str: string): string {
 }
 
 export function hashString(str: string): number {
-	let hash = 0;
-
+	let h = 2166136261;
 	for (let i = 0; i < str.length; i++) {
-		const char = str.charCodeAt(i);
-		hash = (hash << 5) - hash + char;
-		hash |= 0; // Convert to 32-bit integer
+		h ^= str.charCodeAt(i);
+		h = Math.imul(h, 16777619);
+		h >>>= 0;
+	}
+	return h;
+}
+
+export function toHumanIdentifier(id: string, count: number, vocabulary: string[]): string {
+	if (vocabulary.length < count) {
+		throw new Error(`Vocabulary must contain at least ${count} items`);
 	}
 
-	return hash;
+	function derive(salt: string): number {
+		return hashString(id + ":" + salt);
+	}
+
+	const n = vocabulary.length;
+	const chosen: string[] = [];
+
+	for (let slot = 0; slot < count; slot++) {
+		let attempt = 0;
+		let word: string;
+		do {
+			word = vocabulary[derive(`w${slot}:${attempt}`) % n];
+			attempt++;
+		} while (chosen.includes(word));
+		chosen.push(word);
+	}
+
+	const digits = String(derive("d1") % 10000).padStart(4, "0");
+
+	return `${chosen.join('')}#${digits}`;
 }

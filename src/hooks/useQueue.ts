@@ -33,17 +33,12 @@ function persistParty() {
 	sessionStorage.setItem(PARTY_QUEUE_KEY, btoa(binary));
 }
 
-// ── Module init: if reconnecting or joining via URL, enter party mode ───────
+// ── Module init: if reconnecting (partyId in sessionStorage), enter party mode
 try {
-	const params = new URLSearchParams(window.location.search);
-	const urlPartyId = params.get('party');
 	const storedPartyId = sessionStorage.getItem('song-book:party-id');
 
-	if (urlPartyId || storedPartyId) {
+	if (storedPartyId) {
 		currentMode = 'party';
-		if (urlPartyId) {
-			sessionStorage.setItem('song-book:party-id', urlPartyId);
-		}
 
 		doc = new Y.Doc();
 		yQueue = doc.getArray('queue');

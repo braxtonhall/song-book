@@ -14,4 +14,5 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - Move play button down to beside enqueue. To big buttons. Enqueue changes to "Queued" for a moment and is disabled when you press it.
 - Add to queue fails the first time on Chrome Mobile. Why?!
 
-- Do we really not need to rebroadcast CRDT updates? What if I missed one from someone?
+- Copy button should respond to being clicked
+- There should be a "copy share link" button
