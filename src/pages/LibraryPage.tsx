@@ -12,6 +12,15 @@ import "./Page.css";
 import "./LibraryPage.css";
 
 const SORT_HEADER_HEIGHT = 44;
+const SORT_STORAGE_KEY = "song-book:library-sort";
+
+function getStoredSort(): SortBy {
+	try {
+		const stored = localStorage.getItem(SORT_STORAGE_KEY);
+		if (stored === "artist" || stored === "song") return stored;
+	} catch {}
+	return "song";
+}
 
 const FUSE_OPTIONS = {
 	keys: [
@@ -43,7 +52,7 @@ export function LibraryPage({
 	const listRef = useListRef(null);
 	const [query, setQuery] = useState("");
 	const debouncedQuery = useDebounce(query, 200);
-	const [sortBy, setSortBy] = useState<SortBy>("song");
+	const [sortBy, setSortBy] = useState<SortBy>(getStoredSort);
 	const [alphaVisible, setAlphaVisible] = useState(false);
 	const [visibleStart, setVisibleStart] = useState(0);
 	const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -63,6 +72,12 @@ export function LibraryPage({
 	}, []);
 
 	useEffect(() => () => clearTimeout(hideTimer.current), []);
+
+	useEffect(() => {
+		try {
+			localStorage.setItem(SORT_STORAGE_KEY, sortBy);
+		} catch {}
+	}, [sortBy]);
 
 	const sortedEntries = useMemo(
 		() =>
