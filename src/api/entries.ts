@@ -54,8 +54,9 @@ const normalize = (str: string) => str.replace(articles, "").trim();
 export const getEntries = async (): Promise<Entry[]> => {
 	const response = await fetch("https://braxtonhall.ca/song-book-resources/songs.json");
 	const result: any[] = await response.json();
-	return result.map(
-		({ songPackage, c3Comments, albumArt, ogg }, index): Entry => ({
+	return result.map(({ songPackage, c3Comments, albumArt, ogg }, index): Entry => {
+		const vocalsDifficulty = vocalsDiff(songPackage.rank.vocals);
+		return {
 			albumArt,
 			song: songPackage.name,
 			sortSong: normalize(songPackage.name),
@@ -77,10 +78,10 @@ export const getEntries = async (): Promise<Entry[]> => {
 				})(),
 			year: songPackage.yearReleased,
 			albumName: songPackage.albumName,
-			albumTrackIndex: index % 10, // TODO where did this go?
-			id: songPackage.songId?.Left || songPackage.songId?.Right || index, // TODO fix this
+			albumTrackIndex: songPackage.albumTrackNumber,
+			id: songPackage.songId,
 			hex: stringToColour(String(hashString(String(index * 13)))),
-			vocalsDifficulty: vocalsDiff(songPackage.rank.vocals),
+			vocalsDifficulty,
 			guitarDifficulty: guitarDiff(songPackage.rank.guitar),
 			drumDifficulty: drumDiff(songPackage.rank.drum),
 			bassDifficulty: bassDiff(songPackage.rank.bass),
@@ -89,12 +90,12 @@ export const getEntries = async (): Promise<Entry[]> => {
 			proGuitarDifficulty: proGuitarDiff(songPackage.rank.real_guitar),
 			proBassDifficulty: proBassDiff(songPackage.rank.real_bass),
 			bandDifficulty: bandDiff(songPackage.rank.band)!,
-			vocalParts: songPackage.song.vocalParts ?? null, // TODO no... Probably not this. It can be 1 as default mauybe? also??
+			vocalParts: songPackage.song.vocalParts ?? (vocalsDifficulty === null ? 0 : 1),
 			multitracks: c3Comments.multitrack ?? true,
-			cover: !songPackage.master,
+			master: songPackage.master,
 			rating: songPackage.rating,
 			duration: songPackage.songLength,
-			ogg: ogg,
-		}),
-	);
+			ogg,
+		};
+	});
 };

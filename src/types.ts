@@ -20,9 +20,9 @@ export type Entry = {
 	proGuitarDifficulty: number | null;
 	proBassDifficulty: number | null;
 	bandDifficulty: number;
-	vocalParts: number | null;
+	vocalParts: number;
 	multitracks: boolean;
-	cover: boolean;
+	master: boolean;
 	rating: number;
 	duration: number;
 	author: string;

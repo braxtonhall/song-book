@@ -112,7 +112,8 @@ export function DetailPanel({
 						<p className="detail-panel__artist">{entry.artist}</p>
 						<p className="detail-panel__album">
 							{entry.albumName}
-							{entry.year ? ` · ${entry.year}` : ""}
+							{entry.year && entry.albumName ? " · " : ""}
+							{entry.year}
 						</p>
 					</div>
 
@@ -127,7 +128,7 @@ export function DetailPanel({
 							<span className="detail-panel__badge">{RATING_LABELS[entry.rating] || "Unrated"}</span>
 						)}
 						{entry.multitracks && <span className="detail-panel__badge">Multitracks</span>}
-						{entry.cover && <span className="detail-panel__badge">Cover</span>}
+						{entry.master && <span className="detail-panel__badge">Master</span>}
 					</div>
 					{onAddToQueue && (
 						<button
