@@ -2,6 +2,7 @@ import React from 'react';
 import { QRCode } from '../components/QRCode';
 import './Page.css';
 import './PartyPage.css';
+import { PeerStatus } from '../partyTypes';
 
 interface PartyPageProps {
 	currentMode: 'solo' | 'party';
@@ -10,7 +11,7 @@ interface PartyPageProps {
 	joiningStep: 'idle' | 'connecting' | 'requesting';
 	peerId: string | null;
 	url: string;
-	peerCount: number;
+	peers: Map<string, PeerStatus>;
 	onStartClick: () => void;
 	onLeave: () => void;
 	onClearError: () => void;
@@ -23,7 +24,7 @@ export function PartyPage({
 	joiningStep,
 	peerId,
 	url,
-	peerCount,
+	peers,
 	onStartClick,
 	onLeave,
 	onClearError,
@@ -59,7 +60,7 @@ export function PartyPage({
 			{currentMode === 'party' && partyId && joiningStep === 'idle' && (
 				<>
 					<div className="party-status">
-						<span>{peerCount} device{peerCount !== 1 ? 's' : ''} connected</span>
+						<span>{peers.size} device{peers.size !== 1 ? 's' : ''} connected</span>
 					</div>
 
 					{peerId ? (

@@ -11,6 +11,7 @@ import { useLandscape } from './hooks/useLandscape';
 import { useQueue } from './hooks/useQueue';
 import { usePeer } from './hooks/usePeer';
 import { useGossip } from './hooks/useGossip';
+import { usePeerLiveness } from './hooks/usePeerLiveness';
 import { useSongPassword } from './hooks/useSongPassword';
 import './App.css';
 import './pages/PartyPage.css';
@@ -27,13 +28,15 @@ function App() {
   const [queueToasts, setQueueToasts] = useState<number[]>([]);
   const { password } = useSongPassword();
 
-  // ── Peer / Gossip ────────────────────────────────────────────────────────
+  // ── Peer / Gossip / Liveness ──────────────────────────────────────────────
   const gossipRef = useRef<ReturnType<typeof useGossip> | null>(null);
+  const livenessRef = useRef<{ markAlive: (id: string) => void } | null>(null);
 
   const {
     peerId,
     connectedPeers,
     connect,
+    disconnect,
     disconnectAll,
     send,
     getPeerIds,
@@ -60,11 +63,21 @@ function App() {
       case 'CRDT_UPDATE':
         applyRemoteUpdate(message.update);
         break;
+      case 'PING':
+        livenessRef.current?.markAlive(from);
+        send(from, { type: 'PONG' });
+        break;
+      case 'PONG':
+        livenessRef.current?.markAlive(from);
+        break;
     }
   });
 
   const gossip = useGossip(send, connect, getPeerIds, peerId);
   gossipRef.current = gossip;
+
+  const { markAlive, getPeerStatuses } = usePeerLiveness(send, disconnect, getPeerIds);
+  livenessRef.current = { markAlive };
 
   // ── Local yjs update → broadcast as CRDT_UPDATE to all peers ─────────────
   const connectedPeersRef = useRef(connectedPeers);
@@ -321,8 +334,6 @@ function App() {
     return `${window.location.origin}${window.location.pathname}?${search}`;
   }, [password, partyId, peerId]);
 
-  const peerCount = connectedPeers.length + 1;
-
   useEffect(() => {
     getEntries().then(setEntries);
   }, []);
@@ -388,7 +399,7 @@ function App() {
             joiningStep={joiningStep}
             peerId={peerId}
             url={url}
-            peerCount={peerCount}
+            peers={getPeerStatuses()}
             onStartClick={handleStartClick}
             onLeave={handleLeave}
             onClearError={handleClearError}
