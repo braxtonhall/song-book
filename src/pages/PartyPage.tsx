@@ -70,10 +70,12 @@ export function PartyPage({
 
 			{currentMode === 'party' && partyId && joiningStep === 'idle' && (
 				<>
-					<div className="party-id">
-						<span className="party-id__label">Party</span>
-						<span className="party-id__value">{getRockerId(partyId)}</span>
-					</div>
+					{peerId && (
+						<div className="party-header">
+							<h1 className="party-header__self">{getRockerId(peerId)}</h1>
+							<h2 className="party-header__party">In party {getRockerId(partyId)}</h2>
+						</div>
+					)}
 
 					{peerId ? (
 						<>
@@ -98,7 +100,7 @@ export function PartyPage({
 
 					{peers.length > 0 && (
 						<div className="party-peers">
-							<div className="party-peers__header">Devices</div>
+							<div className="party-peers__header">Members</div>
 							<ul className="party-peers__list">
 								{peers.map(({ peer, status }) => (
 									<li

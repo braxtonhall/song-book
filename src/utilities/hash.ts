@@ -52,10 +52,10 @@ function toHumanIdentifier(id: string, count: number, vocabulary: string[]): str
 		chosen.push(word);
 	}
 
-	const digits = String(derive("d1") % 10000).padStart(4, "0");
+	const digits = String(derive("d1") % 100).padStart(2, "0");
 
 	return `${chosen.join('')}#${digits}`;
 }
 
 export const getRockerId = (id: string): string =>
-	toHumanIdentifier(id, 3, VOCABULARY);
+	toHumanIdentifier(id, 2, VOCABULARY);
