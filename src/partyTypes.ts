@@ -20,8 +20,8 @@ export type GossipMessage = { id: string; type: "PEER_LIST"; payload: { peers: s
 export type WireMessage =
 	| { type: "GOSSIP"; partyId: string; message: GossipMessage }
 	| { type: "PEER_LIST_REQUEST"; partyId: string }
-	| { type: "CRDT_SYNC"; partyId: string; update: string }
 	| { type: "CRDT_UPDATE"; partyId: string; update: string }
+	| { type: "CRDT_SYNC_REQUEST"; partyId: string; state: string }
 	| { type: "PING"; partyId: string }
 	| { type: "PONG"; partyId: string }
 	| { type: "HISTORY_REQUEST"; partyId: string }

@@ -41,6 +41,8 @@ function App() {
 		leaveParty,
 		currentMode,
 		getSyncUpdate,
+		getStateVector,
+		getDiff,
 		applyRemoteUpdate,
 		setOnLocalUpdate,
 	} = useQueue();
@@ -55,9 +57,9 @@ function App() {
 	const gossipRef = useRef<ReturnType<typeof useGossip> | null>(null);
 	const livenessRef = useRef<{ markAlive: (id: string) => void } | null>(null);
 
-	const { peerId, connectedPeers, connect, disconnect, disconnectAll, send, getPeerIds } = usePeer(
+	const { peerId, connectedPeers, connect, disconnect, disconnectAll, send, getPeerIds } = usePeer({
 		partyId,
-		(from, message) => {
+		onMessage: (from, message) => {
 			if (message.partyId !== partyId) return;
 			switch (message.type) {
 				case "GOSSIP":
@@ -77,11 +79,14 @@ function App() {
 					});
 					break;
 				}
-				case "CRDT_SYNC":
-					applyRemoteUpdate(message.update);
-					break;
 				case "CRDT_UPDATE":
 					applyRemoteUpdate(message.update);
+					break;
+				case "CRDT_SYNC_REQUEST":
+					const diff = getDiff(message.state);
+					if (diff.length) {
+						send(from, { type: "CRDT_UPDATE", partyId, update: diff });
+					}
 					break;
 				case "PING":
 					livenessRef.current?.markAlive(from);
@@ -100,7 +105,10 @@ function App() {
 					break;
 			}
 		},
-	);
+		onConnect: (remotePeerId) => {
+			send(remotePeerId, { type: "CRDT_SYNC_REQUEST", partyId: String(partyId), state: getStateVector() });
+		},
+	});
 
 	const gossip = useGossip(send, connect, getPeerIds, peerId, partyId);
 	gossipRef.current = gossip;
@@ -143,17 +151,15 @@ function App() {
 	useEffect(() => {
 		if (currentMode !== "party" || !partyId) return;
 		const synced = syncedPeersRef.current;
+		const state = getStateVector();
 
 		for (const id of connectedPeers) {
 			if (!synced.has(id)) {
 				synced.add(id);
-				const state = getSyncUpdate();
-				if (state) {
-					send(id, { type: "CRDT_SYNC", partyId, update: state });
-				}
+				send(id, { type: "CRDT_SYNC_REQUEST", partyId, state });
 			}
 		}
-	}, [connectedPeers, currentMode, getSyncUpdate, send, partyId]);
+	}, [connectedPeers, currentMode, getSyncUpdate, send, partyId, getStateVector]);
 
 	// ── Remote add toasts: fire when queue grows via yjs sync ────────────────
 	useEffect(() => {

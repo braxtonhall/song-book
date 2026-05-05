@@ -9,6 +9,7 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 
 # Changes
 
+- Can we make the stop button an svg?
 - Not happy with any of the sorting
 - Move play button down to beside enqueue. Two big buttons. Enqueue changes to "Queued" for a moment and is disabled when you press it.
 - port audio handling code from aisia.ca -- all songs should smoothly transition
@@ -16,3 +17,7 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 # Fixes
 
 - Gossip protocol should know about parties. Only gossip the current party.
+- What happens if you change from wifi to another network?
+  - We should try to connect with a new peer id
+  - Ask everyone we've ever seen before one at a time
+- Sometimes... When I refresh the page (even if not in a Party) it says "Connecting" and gets stuck. Why is that?

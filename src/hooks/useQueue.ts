@@ -289,6 +289,20 @@ export function useQueue() {
 		onLocalUpdateCallback = callback;
 	}, []);
 
+	const getDiff = useCallback((encoded: string) => {
+		if (!doc) return "";
+		const sv = Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
+		const missingUpdate = Y.encodeStateAsUpdate(doc, sv);
+		return btoa(String.fromCharCode(...missingUpdate));
+	}, []);
+
+	const getStateVector = useCallback(() => {
+		if (!doc) return "";
+		const vector = Y.encodeStateVector(doc);
+		const binary = String.fromCharCode(...vector);
+		return btoa(binary);
+	}, []);
+
 	return {
 		queue,
 		addToQueue,
@@ -300,5 +314,7 @@ export function useQueue() {
 		getSyncUpdate,
 		applyRemoteUpdate,
 		setOnLocalUpdate,
+		getDiff,
+		getStateVector,
 	};
 }

@@ -92,6 +92,9 @@ export function PartyPage({
 						<div className="party-peers">
 							<div className="party-peers__header">Members</div>
 							<ul className="party-peers__list">
+								<li key={peerId} className="party-peers__peer">
+									{getRockerId(peerId!)}
+								</li>
 								{peers.map(({ peer, status }) => (
 									<li
 										key={peer}

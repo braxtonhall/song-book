@@ -7,7 +7,9 @@ const STORAGE_PEERS = "song-book:peers";
 
 let futurePeer: Promise<Peer> | null = null;
 const connections = new Map<string, DataConnection>();
+// TODO these should be a set of listeners
 let onMessageRef: ((from: string, message: WireMessage) => void) | null = null;
+let onConnectRef: ((peerId: string) => void) | null = null;
 let partyIdRef: string | null = null;
 
 type Listener = () => void;
@@ -50,6 +52,7 @@ function setupDataConnection(conn: DataConnection) {
 		persistConnectedPeers();
 		notifyConnectedPeersChange();
 		sendPeerList(conn, remoteId);
+		onConnectRef?.(remoteId);
 	});
 
 	conn.on("data", (raw: unknown) => {
@@ -77,13 +80,20 @@ function setupDataConnection(conn: DataConnection) {
 	});
 }
 
-export function usePeer(partyId: string | null, onMessage?: (from: string, message: WireMessage) => void) {
+type UsePeerProps = {
+	partyId: string | null;
+	onMessage: (from: string, message: WireMessage) => void;
+	onConnect: (peerId: string) => void;
+};
+
+export function usePeer({ partyId, onMessage, onConnect }: UsePeerProps) {
 	const [peerId, setPeerId] = useState<string | null>(null);
 	const [connectedPeers, setConnectedPeers] = useState<string[]>(() => Array.from(connections.keys()));
 
 	const onMessageSavedRef = useRef(onMessage);
 	onMessageSavedRef.current = onMessage;
-	onMessageRef = onMessage ?? null;
+	onMessageRef = onMessage;
+	onConnectRef = onConnect;
 	partyIdRef = partyId;
 
 	const initPeer = useCallback(() => {
@@ -107,6 +117,8 @@ export function usePeer(partyId: string | null, onMessage?: (from: string, messa
 							if (remoteId !== id && !connections.has(remoteId)) {
 								const conn = peer!.connect(remoteId, { reliable: true });
 								setupDataConnection(conn);
+
+								// TODO if re-connecting, we don't get the history
 							}
 						});
 					} catch {
