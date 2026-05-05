@@ -145,6 +145,50 @@
 	font-weight: 500;
 }
 
+/* ── URL ── */
+
+.party-url {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: min(60vw, 280px);
+	margin-top: 8px;
+	background: rgba(255, 255, 255, 0.06);
+	border-radius: 8px;
+	padding: 8px 12px;
+}
+
+.party-url__text {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: rgba(255, 255, 255, 0.5);
+	font-size: 12px;
+}
+
+.party-url__copy {
+	flex-shrink: 0;
+	padding: 4px 14px;
+	border: none;
+	border-radius: 6px;
+	background: rgba(255, 255, 255, 0.12);
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+.party-url__copy:hover {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.party-url__copy:active {
+	transform: scale(0.97);
+}
+
 /* ── Leave ── */
 
 .party-leave {

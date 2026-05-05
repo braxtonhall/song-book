@@ -242,9 +242,20 @@ export function PartyPage() {
 					</div>
 
 					{peerId ? (
-						<div className="party-qr">
-							<QRCode text={url} />
-						</div>
+						<>
+							<div className="party-qr">
+								<QRCode text={url} />
+							</div>
+							<div className="party-url">
+								<span className="party-url__text">{url}</span>
+								<button
+									className="party-url__copy"
+									onClick={() => navigator.clipboard.writeText(url)}
+								>
+									Copy
+								</button>
+							</div>
+						</>
 					) : (
 						<div className="party-connecting">
 							<span>Connecting...</span>
