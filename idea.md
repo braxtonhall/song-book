@@ -5,11 +5,13 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - filters!
 - When you sort by difficulty, we need to add the headers. The alpha row will need some thinking
 - Sorting by difficulty, the difficulties are grouped in the menu
+- actual favicon and unfurling metadata
 
 # Changes
 
 - Not happy with any of the sorting
 - Move play button down to beside enqueue. Two big buttons. Enqueue changes to "Queued" for a moment and is disabled when you press it.
+- port audio handling code from aisia.ca -- all songs should smoothly transition
 
 # Fixes
 
