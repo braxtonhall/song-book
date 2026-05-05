@@ -198,6 +198,7 @@ function App() {
 	const [joinError, setJoinError] = useState<string | null>(null);
 	const [joiningStep, setJoiningStep] = useState<"idle" | "connecting">("idle");
 	const joinTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const peerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const initialPeerIdRef = useRef<string | null>(null);
 	const joinStateRef = useRef<{ partyId: string; peerId: string } | null>(null);
 	const switchPartyRef = useRef<{ partyId: string; peerId: string } | null>(null);
@@ -327,11 +328,44 @@ function App() {
 		partyPeerBaselineRef.current = current;
 	}, [connectedPeers, currentMode, page]);
 
+	// ── Peer connection timeout (restored party on refresh / stale session) ──
+	useEffect(() => {
+		if (currentMode !== "party" || !partyId || joiningStep !== "idle" || peerId) {
+			if (peerTimeoutRef.current) {
+				clearTimeout(peerTimeoutRef.current);
+				peerTimeoutRef.current = null;
+			}
+			return;
+		}
+
+		if (!peerTimeoutRef.current) {
+			peerTimeoutRef.current = setTimeout(() => {
+				disconnectAll();
+				leaveParty();
+				setPartyId(null);
+				setJoiningStep("idle");
+				setJoinError("Could not connect to party network");
+				sessionStorage.removeItem("song-book:party-id");
+				peerTimeoutRef.current = null;
+			}, 10000);
+		}
+
+		return () => {
+			if (peerTimeoutRef.current) {
+				clearTimeout(peerTimeoutRef.current);
+				peerTimeoutRef.current = null;
+			}
+		};
+	}, [currentMode, partyId, joiningStep, peerId, leaveParty, disconnectAll]);
+
 	// ── Cleanup timeouts on unmount ──────────────────────────────────────────
 	useEffect(() => {
 		return () => {
 			if (joinTimerRef.current) {
 				clearTimeout(joinTimerRef.current);
+			}
+			if (peerTimeoutRef.current) {
+				clearTimeout(peerTimeoutRef.current);
 			}
 		};
 	}, []);

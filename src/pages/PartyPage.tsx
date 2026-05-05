@@ -60,6 +60,9 @@ export function PartyPage({
 			{currentMode === "party" && partyId && joiningStep !== "idle" && (
 				<div className="party-connecting">
 					<span>Joining party...</span>
+					<button className="party-leave" onClick={onLeave}>
+						Cancel
+					</button>
 				</div>
 			)}
 

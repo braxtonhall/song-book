@@ -20,4 +20,3 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - What happens if you change from wifi to another network?
   - We should try to connect with a new peer id
   - Ask everyone we've ever seen before one at a time
-- Sometimes... When I refresh the page (even if not in a Party) it says "Connecting" and gets stuck. Why is that?
