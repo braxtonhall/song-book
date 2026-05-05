@@ -17,3 +17,148 @@
 	width: min(60vw, 280px);
 	height: min(60vw, 280px);
 }
+
+/* ── Start Party ── */
+
+.party-start {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+}
+
+.party-start__button {
+	padding: 14px 32px;
+	border: none;
+	border-radius: 12px;
+	background: #ffb300;
+	color: #121212;
+	font-size: 17px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s, transform 0.1s;
+}
+
+.party-start__button:hover {
+	background: #ffc107;
+}
+
+.party-start__button:active {
+	transform: scale(0.97);
+}
+
+/* ── Dialog ── */
+
+.party-dialog {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.6);
+	z-index: 100;
+	padding: 24px;
+}
+
+.party-dialog__box {
+	background: #1e1e1e;
+	border-radius: 12px;
+	padding: 24px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+	max-width: 320px;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.party-dialog__title {
+	color: #fff;
+	font-size: 16px;
+	font-weight: 500;
+	text-align: center;
+}
+
+.party-dialog__buttons {
+	display: flex;
+	gap: 8px;
+}
+
+.party-dialog__button {
+	flex: 1;
+	padding: 12px 8px;
+	border-radius: 8px;
+	border: none;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background 0.15s;
+	background: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.8);
+}
+
+.party-dialog__button:hover {
+	background: rgba(255, 255, 255, 0.18);
+}
+
+.party-dialog__button--yes {
+	background: #ffb300;
+	color: #121212;
+}
+
+.party-dialog__button--yes:hover {
+	background: #ffc107;
+}
+
+.party-dialog__button--no {
+	background: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Status ── */
+
+.party-status {
+	text-align: center;
+}
+
+.party-status span {
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 14px;
+	font-weight: 500;
+}
+
+/* ── Connecting ── */
+
+.party-connecting {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: min(60vw, 280px);
+	height: min(60vw, 280px);
+	background: rgba(255, 255, 255, 0.06);
+	border-radius: 12px;
+}
+
+.party-connecting span {
+	color: rgba(255, 255, 255, 0.3);
+	font-size: 14px;
+	font-weight: 500;
+}
+
+/* ── Leave ── */
+
+.party-leave {
+	padding: 12px 28px;
+	border: none;
+	border-radius: 10px;
+	background: rgba(211, 47, 47, 0.15);
+	color: #d32f2f;
+	font-size: 15px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+.party-leave:hover {
+	background: rgba(211, 47, 47, 0.25);
+}

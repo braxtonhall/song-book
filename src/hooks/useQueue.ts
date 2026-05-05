@@ -116,6 +116,7 @@ export function useQueue() {
 	});
 	const [, setHistory] = useState<HistoryEntry[]>([]);
 	const [partyVersion, setPartyVersion] = useState(0);
+	const [mode, setMode] = useState<'solo' | 'party'>(currentMode);
 
 	// ── Solo: react to storage events (cross-tab sync, unlikely but correct) ─
 	useEffect(() => {
@@ -211,13 +212,15 @@ export function useQueue() {
 		enterPartyMode(partyId, copySolo);
 		setPartyVersion(v => v + 1);
 		setQueue(yQueue!.toArray());
+		setMode('party');
 	}, []);
 
 	const leaveParty = useCallback(() => {
 		leavePartyMode();
 		setPartyVersion(v => v + 1);
 		setQueue(soloQueue);
+		setMode('solo');
 	}, []);
 
-	return { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty };
+	return { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode: mode };
 }
