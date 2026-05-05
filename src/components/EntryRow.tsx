@@ -19,6 +19,7 @@ export type EntryRowProps = {
   isDragging?: boolean;
   swipeIcon?: React.ReactNode;
   swipeBgColor?: string;
+  subtitles?: (string | null)[];
 };
 
 const SWIPE_THRESHOLD = 80;
@@ -29,6 +30,7 @@ export function EntryRow({
   showDragHandle, onDragStart, showDismissButton, onDismiss, onDismissSwipe,
   isDragging,
   swipeIcon: customSwipeIcon, swipeBgColor: customSwipeBgColor,
+  subtitles,
 }: RowComponentProps<EntryRowProps>) {
   const entry = entries[index];
 
@@ -226,6 +228,9 @@ export function EntryRow({
         <div className="entry-text">
           <span className={`entry-title${isSelected ? ' entry-title--selected' : ''}`}>{song}</span>
           <span className="entry-artist">{artist}</span>
+          {subtitles?.[index] && (
+            <span className="entry-subtitle">{subtitles[index]}</span>
+          )}
         </div>
         {showDismissButton && (
           <button

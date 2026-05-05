@@ -3,6 +3,7 @@ import { Entry } from './types';
 export type QueueEntry = {
 	uuid: string;
 	entry: Entry;
+	peerId: string | null;
 };
 
 export type HistoryEntry = {

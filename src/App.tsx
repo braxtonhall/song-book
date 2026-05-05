@@ -365,7 +365,7 @@ function App() {
       return;
     }
     localAddGateRef.current = true;
-    addToQueue(entry);
+    addToQueue(entry, currentMode === 'party' ? peerId : null);
     if (page !== 'queue') {
       const id = Date.now();
       setQueueToasts(prev => [...prev, id]);
@@ -373,7 +373,7 @@ function App() {
         setQueueToasts(prev => prev.filter(t => t !== id));
       }, 1500);
     }
-  }, [addToQueue, queue, page]);
+  }, [addToQueue, queue, page, currentMode, peerId]);
 
   const handleSelect = useCallback((entry: Entry) => {
     setSelectedEntry(entry);
@@ -585,7 +585,7 @@ function App() {
                   setDuplicateDialogVisible(false);
                   if (entry) {
                     localAddGateRef.current = true;
-                    addToQueue(entry);
+                    addToQueue(entry, currentMode === 'party' ? peerId : null);
                     if (page !== 'queue') {
                       const id = Date.now();
                       setQueueToasts(prev => [...prev, id]);

@@ -23,6 +23,7 @@ export type ListRowProps = {
 	swipeBgColor?: string;
 	showClearHeader?: boolean;
 	onClearHistory?: () => void;
+	subtitles?: (string | null)[];
 };
 
 export function ListRow({
@@ -36,6 +37,7 @@ export function ListRow({
 	dragIndex,
 	swipeIcon, swipeBgColor,
 	showClearHeader, onClearHistory,
+	subtitles,
 }: RowComponentProps<ListRowProps>) {
 	if (headerOffset === 1 && index === 0 && sortBy && onSortChange) {
 		return <SortHeader style={style} sortBy={sortBy} onSortChange={onSortChange} />;
@@ -74,6 +76,7 @@ export function ListRow({
 			isDragging={dragIndex === adjustedIndex}
 			swipeIcon={swipeIcon}
 			swipeBgColor={swipeBgColor}
+			subtitles={subtitles}
 		/>
 	);
 }

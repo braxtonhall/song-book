@@ -3,6 +3,7 @@ import { List, useListRef } from 'react-window';
 import { Entry } from '../types';
 import { QueueEntry } from '../partyTypes';
 import { ListRow } from '../components/ListRow';
+import { getRockerId } from '../utilities/hash';
 import './Page.css';
 import './QueuePage.css';
 
@@ -48,6 +49,11 @@ export function QueuePage({ queue, onReorder, onDismiss, onSelect, selectedEntry
 	}, []);
 
 	const entries = useMemo(() => queue.map(qe => qe.entry), [queue]);
+
+	const subtitles = useMemo(() =>
+		queue.map(qe => qe.peerId ? `Added by ${getRockerId(qe.peerId)}` : null),
+		[queue],
+	);
 
 	const dropIndicatorTop: number | null = (() => {
 		if (dragStateRef.current === null || hoverIndex === null) return null;
@@ -218,6 +224,7 @@ export function QueuePage({ queue, onReorder, onDismiss, onSelect, selectedEntry
 				rowHeight={rowHeight}
 				rowProps={{
 					entries,
+					subtitles,
 					onSelect,
 					headerOffset: 0,
 					selectedId: selectedEntryId,

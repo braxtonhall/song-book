@@ -94,10 +94,11 @@ function enterPartyMode(partyId: string, copySolo: boolean) {
 	yQueue = doc.getArray('queue');
 	yDismissed = doc.getMap('dismissed');
 
-	if (copySolo && soloQueue.length > 0) {
+		if (copySolo && soloQueue.length > 0) {
 		yQueue.push(soloQueue.map(qe => ({
 			uuid: crypto.randomUUID(),
 			entry: qe.entry,
+			peerId: qe.peerId ?? null,
 		})));
 	}
 
@@ -203,11 +204,11 @@ export function useQueue() {
 	}, [partyVersion]);
 
 	// ── Operations ───────────────────────────────────────────────────────────
-	const addToQueue = useCallback((entry: Entry) => {
+	const addToQueue = useCallback((entry: Entry, peerId: string | null) => {
 		if (currentMode === 'party' && yQueue) {
-			yQueue.push([{ uuid: crypto.randomUUID(), entry }]);
+			yQueue.push([{ uuid: crypto.randomUUID(), entry, peerId }]);
 		} else {
-			soloQueue = [...soloQueue, { uuid: crypto.randomUUID(), entry }];
+			soloQueue = [...soloQueue, { uuid: crypto.randomUUID(), entry, peerId: null }];
 			persistSolo();
 			setQueue(soloQueue);
 		}
