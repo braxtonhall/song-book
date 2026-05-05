@@ -28,9 +28,17 @@ interface LibraryPageProps {
 	selectedEntryId: number | null;
 	panelOpen: boolean;
 	onAddToQueue?: (entry: Entry) => void;
+	onToggleFilter: () => void;
 }
 
-export function LibraryPage({ entries, onSelect, selectedEntryId, panelOpen, onAddToQueue }: LibraryPageProps) {
+export function LibraryPage({
+	entries,
+	onSelect,
+	selectedEntryId,
+	panelOpen,
+	onAddToQueue,
+	onToggleFilter,
+}: LibraryPageProps) {
 	const commonRowHeight = useRowHeight();
 	const listRef = useListRef(null);
 	const [query, setQuery] = useState("");
@@ -102,7 +110,21 @@ export function LibraryPage({ entries, onSelect, selectedEntryId, panelOpen, onA
 
 	return (
 		<div className="page page--library">
-			<SearchBar query={query} onChange={setQuery} />
+			<div className="library-toolbar">
+				<SearchBar query={query} onChange={setQuery} />
+				<button className="library-filters-btn" onClick={onToggleFilter} aria-label="Filters">
+					<svg
+						viewBox="0 0 20 20"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="1.6"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					>
+						<polygon points="2,4 8,12 8,16 12,14 12,12 18,4" />
+					</svg>
+				</button>
+			</div>
 			<div className="list-wrapper">
 				<List
 					listRef={listRef}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Entry } from "./types";
 import { getEntries } from "./api/entries";
 import { DetailPanel } from "./components/DetailPanel";
+import { FilterPanel } from "./components/FilterPanel";
 import { NavBar } from "./components/NavBar";
 import { LibraryPage } from "./pages/LibraryPage";
 import { QueuePage } from "./pages/QueuePage";
@@ -32,6 +33,7 @@ function App() {
 	const [page, setPage] = useState<PageId>("library");
 	const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
 	const [sheetDismissed, setSheetDismissed] = useState(true);
+	const [filterDismissed, setFilterDismissed] = useState(true);
 	const {
 		queue,
 		addToQueue,
@@ -439,6 +441,7 @@ function App() {
 	const handleSelect = useCallback((entry: Entry) => {
 		setSelectedEntry(entry);
 		setSheetDismissed(false);
+		setFilterDismissed(true);
 	}, []);
 
 	const handleRemoveHistory = useCallback((uuid: string) => {
@@ -448,6 +451,19 @@ function App() {
 	const handleClearHistory = useCallback(() => {
 		clearHistory();
 	}, []);
+
+	const handleToggleFilter = useCallback(() => {
+		setFilterDismissed((prev) => !prev);
+		if (!filterDismissed) return;
+		setSheetDismissed(true);
+		setSelectedEntry(null);
+	}, [filterDismissed]);
+
+	useEffect(() => {
+		if (page !== "library") {
+			setFilterDismissed(true);
+		}
+	}, [page]);
 
 	// TODO I don't like that this happens every single render
 	const statuses = getPeerStatuses();
@@ -470,7 +486,7 @@ function App() {
 				queueToasts={queueToasts}
 				partyBadge={partyBadge}
 			/>
-			<div className={`App${landscape && !sheetDismissed ? " App--panel-open" : ""}`}>
+			<div className={`App${landscape && (!sheetDismissed || !filterDismissed) ? " App--panel-open" : ""}`}>
 				{page === "library" && (
 					<LibraryPage
 						entries={entries}
@@ -478,6 +494,7 @@ function App() {
 						selectedEntryId={selectedEntry?.id ?? null}
 						panelOpen={!sheetDismissed}
 						onAddToQueue={handleAddToQueue}
+						onToggleFilter={handleToggleFilter}
 					/>
 				)}
 				{page === "queue" && (
@@ -523,6 +540,7 @@ function App() {
 					isLandscape={landscape}
 					onAddToQueue={handleAddToQueue}
 				/>
+				<FilterPanel dismissed={filterDismissed} onDismiss={() => setFilterDismissed(true)} isLandscape={landscape} />
 			</div>
 
 			{dialogVisible && (

@@ -2,6 +2,42 @@
 	position: relative;
 }
 
+.library-toolbar {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.library-toolbar .search-bar {
+	flex: 1;
+}
+
+.library-filters-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--search-height);
+	height: var(--search-height);
+	flex-shrink: 0;
+	background: #1c1c1c;
+	border: none;
+	border-left: 1px solid rgba(255, 255, 255, 0.08);
+	color: rgba(255, 255, 255, 0.45);
+	cursor: pointer;
+	padding: 0;
+	transition: color 0.15s;
+}
+
+.library-filters-btn:hover {
+	color: #fff;
+}
+
+.library-filters-btn svg {
+	width: 20px;
+	height: 20px;
+}
+
 .list-wrapper {
 	flex: 1;
 	min-height: 0;
