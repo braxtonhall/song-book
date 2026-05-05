@@ -261,7 +261,7 @@ export function DetailPanel({
               <button
                 className="detail-panel__add-queue-btn"
                 onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onAddToQueue(entry)}
+                onPointerUp={(e) => { if (e.button === 0) onAddToQueue(entry); }}
               >
                 Add to Queue
               </button>

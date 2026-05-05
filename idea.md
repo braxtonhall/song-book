@@ -13,6 +13,4 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - There should be a list of recent parties so you can rejoin
 - Move play button down to beside enqueue. To big buttons. Enqueue changes to "Queued" for a moment and is disabled when you press it.
 - Add to queue fails the first time on Chrome Mobile. Why?!
-- If you are already in a party and you join a party with a different party id, you should get a dialog saying "Do you want to join this party?"
 - Copy buttons should respond to being clicked
-- Why is it that party joining doesn't happen until you go to the party page. Entering the app from the QR code should automatically join the party
