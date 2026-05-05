@@ -157,32 +157,35 @@ export function useQueue() {
 	// ── Party: sync yjs array to React state ─────────────────────────────────
 	useEffect(() => {
 		if (currentMode !== 'party' || !yQueue) return;
-		const handler = () => setQueue(yQueue!.toArray());
-		yQueue.observe(handler);
-		setQueue(yQueue.toArray());
-		return () => { yQueue?.unobserve(handler); };
+		const yq = yQueue;
+		const handler = () => setQueue(yq.toArray());
+		yq.observe(handler);
+		setQueue(yq.toArray());
+		return () => { yq.unobserve(handler); };
 	}, [partyVersion]);
 
 	// ── Party: dismissed-map observer → history + array cleanup ──────────────
 	useEffect(() => {
 		if (currentMode !== 'party' || !yDismissed) return;
+		const yd = yDismissed;
+		const yq = yQueue;
 		const handler = (event: Y.YMapEvent<boolean>) => {
 			for (const key of event.keysChanged) {
 				if (event.target.get(key) !== true) continue;
-				const array = yQueue!.toArray();
+				const array = yq!.toArray();
 				const idx = array.findIndex(e => e.uuid === key);
 				if (idx === -1) continue;
-				const entry = yQueue!.get(idx).entry;
+				const entry = yq!.get(idx).entry;
 				setHistory(h => [...h, {
 					entry,
 					partyId: sessionStorage.getItem('song-book:party-id'),
 					dismissedAt: new Date().toISOString(),
 				}]);
-				yQueue!.delete(idx, 1);
+				yq!.delete(idx, 1);
 			}
 		};
-		yDismissed.observe(handler);
-		return () => { yDismissed?.unobserve(handler); };
+		yd.observe(handler);
+		return () => { yd.unobserve(handler); };
 	}, [partyVersion]);
 
 	// ── Operations ───────────────────────────────────────────────────────────
