@@ -65,12 +65,14 @@ function App() {
     () => sessionStorage.getItem('song-book:party-id')
   );
   const [dialogVisible, setDialogVisible] = useState(false);
+  const [switchPartyDialogVisible, setSwitchPartyDialogVisible] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [joiningStep, setJoiningStep] = useState<'idle' | 'connecting' | 'requesting'>('idle');
   const joinTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const joinBroadcastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialPeerIdRef = useRef<string | null>(null);
   const joinStateRef = useRef<{ partyId: string; peerId: string } | null>(null);
+  const switchPartyRef = useRef<{ partyId: string; peerId: string } | null>(null);
   const joinedRef = useRef(false);
 
   // ── Create party flow ────────────────────────────────────────────────────
@@ -127,19 +129,31 @@ function App() {
 
     if (!urlPartyId || !urlPeerId) return;
 
-    if (sessionStorage.getItem('song-book:party-id')) return;
+    const currentStoredPartyId = sessionStorage.getItem('song-book:party-id');
 
-    params.delete('party');
-    params.delete('peer');
-    const search = params.toString();
-    const newUrl = search
-      ? `${window.location.pathname}?${search}`
-      : window.location.pathname;
-    window.history.replaceState(null, '', newUrl);
+    if (!currentStoredPartyId) {
+      params.delete('party');
+      params.delete('peer');
+      const search = params.toString();
+      const newUrl = search
+        ? `${window.location.pathname}?${search}`
+        : window.location.pathname;
+      window.history.replaceState(null, '', newUrl);
 
-    sessionStorage.setItem('song-book:party-id', urlPartyId);
-
-    initiateJoin(urlPartyId, urlPeerId);
+      sessionStorage.setItem('song-book:party-id', urlPartyId);
+      initiateJoin(urlPartyId, urlPeerId);
+    } else if (currentStoredPartyId !== urlPartyId) {
+      switchPartyRef.current = { partyId: urlPartyId, peerId: urlPeerId };
+      setSwitchPartyDialogVisible(true);
+    } else {
+      params.delete('party');
+      params.delete('peer');
+      const search = params.toString();
+      const newUrl = search
+        ? `${window.location.pathname}?${search}`
+        : window.location.pathname;
+      window.history.replaceState(null, '', newUrl);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -344,6 +358,71 @@ function App() {
                 }}
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {switchPartyDialogVisible && (
+        <div className="party-dialog" onClick={() => {
+          switchPartyRef.current = null;
+          setSwitchPartyDialogVisible(false);
+          const params = new URLSearchParams(window.location.search);
+          params.delete('party');
+          params.delete('peer');
+          const search = params.toString();
+          const newUrl = search
+            ? `${window.location.pathname}?${search}`
+            : window.location.pathname;
+          window.history.replaceState(null, '', newUrl);
+        }}>
+          <div className="party-dialog__box" onClick={(e) => e.stopPropagation()}>
+            <div className="party-dialog__title">Switch to this party?</div>
+            <div className="party-dialog__buttons">
+              <button
+                className="party-dialog__button party-dialog__button--yes"
+                onClick={() => {
+                  const { partyId: newPartyId, peerId: newPeerId } = switchPartyRef.current!;
+                  switchPartyRef.current = null;
+                  setSwitchPartyDialogVisible(false);
+
+                  const params = new URLSearchParams(window.location.search);
+                  params.delete('party');
+                  params.delete('peer');
+                  const search = params.toString();
+                  const newUrl = search
+                    ? `${window.location.pathname}?${search}`
+                    : window.location.pathname;
+                  window.history.replaceState(null, '', newUrl);
+
+                  disconnectAll();
+                  leaveParty();
+                  setPartyId(null);
+
+                  sessionStorage.setItem('song-book:party-id', newPartyId);
+                  executeJoin(newPartyId, newPeerId, false);
+                }}
+              >
+                Switch
+              </button>
+              <button
+                className="party-dialog__button"
+                onClick={() => {
+                  switchPartyRef.current = null;
+                  setSwitchPartyDialogVisible(false);
+
+                  const params = new URLSearchParams(window.location.search);
+                  params.delete('party');
+                  params.delete('peer');
+                  const search = params.toString();
+                  const newUrl = search
+                    ? `${window.location.pathname}?${search}`
+                    : window.location.pathname;
+                  window.history.replaceState(null, '', newUrl);
+                }}
+              >
+                Stay
               </button>
             </div>
           </div>

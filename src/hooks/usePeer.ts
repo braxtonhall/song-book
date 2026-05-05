@@ -69,7 +69,7 @@ export function usePeer(onMessage?: (from: string, message: WireMessage) => void
 	onMessageSavedRef.current = onMessage;
 	onMessageRef = onMessage ?? null;
 
-	useEffect(() => {
+	const initPeer = useCallback(() => {
 		if (futurePeer) {
 			return;
 		}
@@ -110,8 +110,9 @@ export function usePeer(onMessage?: (from: string, message: WireMessage) => void
 				}
 			});
 		});
+	}, [])
 
-	}, []);
+	useEffect(initPeer, [initPeer]);
 
 	useEffect(() => {
 		const listener = () => {
@@ -152,9 +153,10 @@ export function usePeer(onMessage?: (from: string, message: WireMessage) => void
 			futurePeer.then((peer) => peer.destroy());
 		}
 		futurePeer = null;
+		initPeer();
 		setPeerId(null);
 		notifyConnectedPeersChange();
-	}, []);
+	}, [initPeer]);
 
 	const send = useCallback((remotePeerId: string, message: WireMessage) => {
 		const conn = connections.get(remotePeerId);
