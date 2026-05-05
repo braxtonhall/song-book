@@ -18,11 +18,11 @@ export type GossipMessage =
 	| { id: string; type: 'PEER_LIST'; payload: { peers: string[] } };
 
 export type WireMessage =
-	| { type: 'GOSSIP'; message: GossipMessage }
-	| { type: 'PEER_LIST_REQUEST' }
-	| { type: 'CRDT_SYNC'; update: string }
-	| { type: 'CRDT_UPDATE'; update: string }
-	| { type: 'PING' }
-	| { type: 'PONG' }
+	| { type: 'GOSSIP'; partyId: string; message: GossipMessage }
+	| { type: 'PEER_LIST_REQUEST'; partyId: string }
+	| { type: 'CRDT_SYNC'; partyId: string; update: string }
+	| { type: 'CRDT_UPDATE'; partyId: string; update: string }
+	| { type: 'PING'; partyId: string }
+	| { type: 'PONG'; partyId: string }
 	| { type: 'HISTORY_REQUEST'; partyId: string }
-	| { type: 'HISTORY_RESPONSE'; entries: HistoryEntry[] };
+	| { type: 'HISTORY_RESPONSE'; partyId: string; entries: HistoryEntry[] };

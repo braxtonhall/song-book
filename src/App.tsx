@@ -27,6 +27,9 @@ function App() {
   const { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode, getSyncUpdate, applyRemoteUpdate, setOnLocalUpdate } = useQueue();
   const [queueToasts, setQueueToasts] = useState<number[]>([]);
   const { password } = useSongPassword();
+  const [partyId, setPartyId] = useState<string | null>(
+    () => sessionStorage.getItem('song-book:party-id')
+  );
 
   // ── Peer / Gossip / Liveness ──────────────────────────────────────────────
   const gossipRef = useRef<ReturnType<typeof useGossip> | null>(null);
@@ -40,15 +43,18 @@ function App() {
     disconnectAll,
     send,
     getPeerIds,
-  } = usePeer((from, message) => {
+  } = usePeer(partyId, (from, message) => {
+    if (message.partyId !== partyId) return;
     switch (message.type) {
       case 'GOSSIP':
         gossipRef.current?.receive(message.message, from);
         break;
       case 'PEER_LIST_REQUEST': {
+        if (!partyId) return;
         const peers = getPeerIds();
         send(from, {
           type: 'GOSSIP',
+          partyId: partyId,
           message: {
             id: crypto.randomUUID(),
             type: 'PEER_LIST',
@@ -65,7 +71,7 @@ function App() {
         break;
       case 'PING':
         livenessRef.current?.markAlive(from);
-        send(from, { type: 'PONG' });
+        if (partyId) send(from, { type: 'PONG', partyId });
         break;
       case 'PONG':
         livenessRef.current?.markAlive(from);
@@ -73,10 +79,10 @@ function App() {
     }
   });
 
-  const gossip = useGossip(send, connect, getPeerIds, peerId);
+  const gossip = useGossip(send, connect, getPeerIds, peerId, partyId);
   gossipRef.current = gossip;
 
-  const { markAlive, getPeerStatuses } = usePeerLiveness(send, disconnect, getPeerIds);
+  const { markAlive, getPeerStatuses } = usePeerLiveness(send, disconnect, getPeerIds, partyId);
   livenessRef.current = { markAlive };
 
   // ── Local yjs update → broadcast as CRDT_UPDATE to all peers ─────────────
@@ -84,10 +90,11 @@ function App() {
   connectedPeersRef.current = connectedPeers;
 
   const broadcastUpdate = useCallback((encoded: string) => {
+    if (!partyId) return;
     for (const id of connectedPeersRef.current) {
-      send(id, { type: 'CRDT_UPDATE', update: encoded });
+      send(id, { type: 'CRDT_UPDATE', partyId, update: encoded });
     }
-  }, [send]);
+  }, [send, partyId]);
 
   useEffect(() => {
     setOnLocalUpdate(broadcastUpdate);
@@ -108,7 +115,7 @@ function App() {
   }, [currentMode]);
 
   useEffect(() => {
-    if (currentMode !== 'party') return;
+    if (currentMode !== 'party' || !partyId) return;
     const synced = syncedPeersRef.current;
 
     for (const id of connectedPeers) {
@@ -116,11 +123,11 @@ function App() {
         synced.add(id);
         const state = getSyncUpdate();
         if (state) {
-          send(id, { type: 'CRDT_SYNC', update: state });
+          send(id, { type: 'CRDT_SYNC', partyId, update: state });
         }
       }
     }
-  }, [connectedPeers, currentMode, getSyncUpdate, send]);
+  }, [connectedPeers, currentMode, getSyncUpdate, send, partyId]);
 
   // ── Remote add toasts: fire when queue grows via yjs sync ────────────────
   useEffect(() => {
@@ -152,9 +159,6 @@ function App() {
   }, [queue, currentMode, page]);
 
   // ── Party state ──────────────────────────────────────────────────────────
-  const [partyId, setPartyId] = useState<string | null>(
-    () => sessionStorage.getItem('song-book:party-id')
-  );
   const [dialogVisible, setDialogVisible] = useState(false);
   const [switchPartyDialogVisible, setSwitchPartyDialogVisible] = useState(false);
   const [duplicateDialogVisible, setDuplicateDialogVisible] = useState(false);
@@ -263,9 +267,9 @@ function App() {
       }
 
       setJoiningStep('requesting');
-      send(initialPeerId, { type: 'PEER_LIST_REQUEST' });
+      if (partyId) send(initialPeerId, { type: 'PEER_LIST_REQUEST', partyId });
     }
-  }, [joiningStep, connectedPeers, send]);
+  }, [joiningStep, connectedPeers, send, partyId]);
 
   // ── JOIN broadcast ───────────────────────────────────────────────────────
   useEffect(() => {

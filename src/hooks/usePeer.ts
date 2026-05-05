@@ -8,6 +8,7 @@ const STORAGE_PEERS = 'song-book:peers';
 let futurePeer: Promise<Peer> | null = null;
 const connections = new Map<string, DataConnection>();
 let onMessageRef: ((from: string, message: WireMessage) => void) | null = null;
+let partyIdRef: string | null = null;
 
 type Listener = () => void;
 const stateListeners = new Set<Listener>();
@@ -26,9 +27,11 @@ function notifyConnectedPeersChange() {
 }
 
 function sendPeerList(conn: DataConnection, remoteId: string) {
+	if (!partyIdRef) return;
 	const peers = Array.from(connections.keys()).filter((id) => id !== remoteId);
 	conn.send(JSON.stringify({
 		type: 'GOSSIP',
+		partyId: partyIdRef,
 		message: {
 			id: crypto.randomUUID(),
 			type: 'PEER_LIST',
@@ -72,7 +75,10 @@ function setupDataConnection(conn: DataConnection) {
 	});
 }
 
-export function usePeer(onMessage?: (from: string, message: WireMessage) => void) {
+export function usePeer(
+	partyId: string | null,
+	onMessage?: (from: string, message: WireMessage) => void,
+) {
 	const [peerId, setPeerId] = useState<string | null>(null);
 	const [connectedPeers, setConnectedPeers] = useState<string[]>(() =>
 		Array.from(connections.keys())
@@ -81,6 +87,7 @@ export function usePeer(onMessage?: (from: string, message: WireMessage) => void
 	const onMessageSavedRef = useRef(onMessage);
 	onMessageSavedRef.current = onMessage;
 	onMessageRef = onMessage ?? null;
+	partyIdRef = partyId;
 
 	const initPeer = useCallback(() => {
 		if (futurePeer) {

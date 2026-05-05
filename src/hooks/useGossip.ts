@@ -35,14 +35,16 @@ export function useGossip(
 	connect: (peerId: string) => void,
 	getPeerIds: () => string[],
 	peerId: string | null,
+	partyId: string | null,
 ) {
 	const broadcast = useCallback((gossipMessage: GossipMessage) => {
+		if (!partyId) return;
 		seenMessageIds.add(gossipMessage.id);
-		const wire: WireMessage = { type: 'GOSSIP', message: gossipMessage };
+		const wire: WireMessage = { type: 'GOSSIP', partyId, message: gossipMessage };
 		for (const id of getPeerIds()) {
 			send(id, wire);
 		}
-	}, [send, getPeerIds]);
+	}, [send, getPeerIds, partyId]);
 
 	const receive = useCallback((gossipMessage: GossipMessage, senderId: string) => {
 		if (seenMessageIds.has(gossipMessage.id)) return;
@@ -54,15 +56,15 @@ export function useGossip(
 			peerId,
 		);
 
-		if (shouldRebroadcast) {
-			const wire: WireMessage = { type: 'GOSSIP', message: gossipMessage };
+		if (shouldRebroadcast && partyId) {
+			const wire: WireMessage = { type: 'GOSSIP', partyId, message: gossipMessage };
 			for (const id of getPeerIds()) {
 				if (id !== senderId) {
 					send(id, wire);
 				}
 			}
 		}
-	}, [send, connect, getPeerIds, peerId]);
+	}, [send, connect, getPeerIds, peerId, partyId]);
 
 	return { broadcast, receive };
 }

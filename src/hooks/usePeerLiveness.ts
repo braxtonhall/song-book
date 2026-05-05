@@ -13,6 +13,7 @@ export function usePeerLiveness(
 	send: (peerId: string, message: WireMessage) => void,
 	disconnect: (peerId: string) => void,
 	getConnectedPeerIds: () => string[],
+	partyId: string | null,
 ) {
 	const runPingCycle = useCallback(() => {
 		const peerIds = getConnectedPeerIds();
@@ -33,8 +34,10 @@ export function usePeerLiveness(
 			}
 		}
 
-		for (const id of peerIds) {
-			send(id, { type: 'PING' });
+		if (partyId) {
+			for (const id of peerIds) {
+				send(id, { type: 'PING', partyId });
+			}
 		}
 
 		const staleIds: string[] = [];
@@ -52,7 +55,7 @@ export function usePeerLiveness(
 			missCounts.delete(id);
 			peerStatuses.delete(id);
 		}
-	}, [send, disconnect, getConnectedPeerIds]);
+	}, [send, disconnect, getConnectedPeerIds, partyId]);
 
 	useEffect(() => {
 		pingTimer = setInterval(runPingCycle, PING_INTERVAL_MS);
