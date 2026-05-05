@@ -34,11 +34,31 @@ let yQueue: Y.Array<QueueEntry> | null = null;
 let yDismissed: Y.Map<boolean> | null = null;
 let partySaveTimer: ReturnType<typeof setTimeout> | null = null;
 
+type LocalUpdateCallback = (encoded: string) => void;
+let onLocalUpdateCallback: LocalUpdateCallback | null = null;
+
 function persistParty() {
 	if (!doc) return;
 	const state = Y.encodeStateAsUpdate(doc);
 	const binary = String.fromCharCode(...state);
 	sessionStorage.setItem(PARTY_QUEUE_KEY, btoa(binary));
+}
+
+function setupDocListeners() {
+	if (!doc) return;
+
+	doc.on('update', () => {
+		if (partySaveTimer) clearTimeout(partySaveTimer);
+		partySaveTimer = setTimeout(persistParty, 200);
+	});
+
+	doc.on('update', (update, origin) => {
+		if (origin === 'remote') return;
+		if (!onLocalUpdateCallback) return;
+		const binary = String.fromCharCode(...update);
+		const encoded = btoa(binary);
+		onLocalUpdateCallback(encoded);
+	});
 }
 
 // ── Module init: if reconnecting (partyId in sessionStorage), enter party mode
@@ -58,10 +78,7 @@ try {
 			Y.applyUpdate(doc, update);
 		}
 
-		doc.on('update', () => {
-			if (partySaveTimer) clearTimeout(partySaveTimer);
-			partySaveTimer = setTimeout(persistParty, 200);
-		});
+		setupDocListeners();
 	}
 } catch {
 	currentMode = 'solo';
@@ -83,10 +100,7 @@ function enterPartyMode(partyId: string, copySolo: boolean) {
 		})));
 	}
 
-	doc.on('update', () => {
-		if (partySaveTimer) clearTimeout(partySaveTimer);
-		partySaveTimer = setTimeout(persistParty, 200);
-	});
+	setupDocListeners();
 
 	currentMode = 'party';
 	sessionStorage.setItem('song-book:party-id', partyId);
@@ -239,5 +253,23 @@ export function useQueue() {
 		leavePartyMode();
 	}, []);
 
-	return { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode: mode };
+	const getSyncUpdate = useCallback((): string | null => {
+		if (!doc) return null;
+		const state = Y.encodeStateAsUpdate(doc);
+		const binary = String.fromCharCode(...state);
+		return btoa(binary);
+	}, []);
+
+	const applyRemoteUpdate = useCallback((encoded: string) => {
+		if (!doc) return;
+		const update = new Uint8Array(atob(encoded).split('').map(c => c.charCodeAt(0)));
+		Y.applyUpdate(doc, update, 'remote');
+	}, []);
+
+	const setOnLocalUpdate = useCallback((callback: LocalUpdateCallback | null) => {
+		onLocalUpdateCallback = callback;
+	}, []);
+
+	return { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode: mode,
+		getSyncUpdate, applyRemoteUpdate, setOnLocalUpdate };
 }

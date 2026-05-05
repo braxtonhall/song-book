@@ -23,7 +23,7 @@ function App() {
   const [page, setPage] = useState<PageId>('library');
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [sheetDismissed, setSheetDismissed] = useState(true);
-  const { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode } = useQueue();
+  const { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode, getSyncUpdate, applyRemoteUpdate, setOnLocalUpdate } = useQueue();
   const [queueToasts, setQueueToasts] = useState<number[]>([]);
   const { password } = useSongPassword();
 
@@ -42,23 +42,68 @@ function App() {
       case 'GOSSIP':
         gossipRef.current?.receive(message.message, from);
         break;
-      case 'PEER_LIST_REQUEST': {
-        const peers = getPeerIds();
-        send(from, {
-          type: 'GOSSIP',
-          message: {
-            id: crypto.randomUUID(),
-            type: 'PEER_LIST',
-            payload: { peers },
-          },
-        });
-        break;
-      }
+        case 'PEER_LIST_REQUEST': {
+          const peers = getPeerIds();
+          send(from, {
+            type: 'GOSSIP',
+            message: {
+              id: crypto.randomUUID(),
+              type: 'PEER_LIST',
+              payload: { peers },
+            },
+          });
+          break;
+        }
+        case 'CRDT_SYNC':
+          applyRemoteUpdate(message.update);
+          break;
+        case 'CRDT_UPDATE':
+          applyRemoteUpdate(message.update);
+          break;
     }
   });
 
   const gossip = useGossip(send, connect, getPeerIds, peerId);
   gossipRef.current = gossip;
+
+  // ── Local yjs update → broadcast as CRDT_UPDATE to all peers ─────────────
+  const connectedPeersRef = useRef(connectedPeers);
+  connectedPeersRef.current = connectedPeers;
+
+  const broadcastUpdate = useCallback((encoded: string) => {
+    for (const id of connectedPeersRef.current) {
+      send(id, { type: 'CRDT_UPDATE', update: encoded });
+    }
+  }, [send]);
+
+  useEffect(() => {
+    setOnLocalUpdate(broadcastUpdate);
+    return () => setOnLocalUpdate(null);
+  }, [setOnLocalUpdate, broadcastUpdate]);
+
+  // ── CRDT initial sync to newly connected peers ───────────────────────────
+  const syncedPeersRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (currentMode === 'solo') {
+      syncedPeersRef.current = new Set();
+    }
+  }, [currentMode]);
+
+  useEffect(() => {
+    if (currentMode !== 'party') return;
+    const synced = syncedPeersRef.current;
+
+    for (const id of connectedPeers) {
+      if (!synced.has(id)) {
+        synced.add(id);
+        const state = getSyncUpdate();
+        if (state) {
+          send(id, { type: 'CRDT_SYNC', update: state });
+        }
+      }
+    }
+  }, [connectedPeers, currentMode, getSyncUpdate, send]);
 
   // ── Party state ──────────────────────────────────────────────────────────
   const [partyId, setPartyId] = useState<string | null>(
