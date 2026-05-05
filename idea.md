@@ -14,3 +14,5 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - Move play button down to beside enqueue. To big buttons. Enqueue changes to "Queued" for a moment and is disabled when you press it.
 - Add to queue fails the first time on Chrome Mobile. Why?!
 - Copy buttons should respond to being clicked
+
+- All wire messages should include a party id. That includes PINGs and PONGs. Don't accept wire messages if the party id does not match.

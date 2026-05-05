@@ -25,6 +25,18 @@ function notifyConnectedPeersChange() {
 	stateListeners.forEach((fn) => fn());
 }
 
+function sendPeerList(conn: DataConnection, remoteId: string) {
+	const peers = Array.from(connections.keys()).filter((id) => id !== remoteId);
+	conn.send(JSON.stringify({
+		type: 'GOSSIP',
+		message: {
+			id: crypto.randomUUID(),
+			type: 'PEER_LIST',
+			payload: { peers },
+		},
+	}));
+}
+
 function setupDataConnection(conn: DataConnection) {
 	const remoteId = conn.peer;
 
@@ -32,6 +44,7 @@ function setupDataConnection(conn: DataConnection) {
 		connections.set(remoteId, conn);
 		persistConnectedPeers();
 		notifyConnectedPeersChange();
+		sendPeerList(conn, remoteId);
 	});
 
 	conn.on('data', (raw: unknown) => {
