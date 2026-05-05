@@ -42,24 +42,24 @@ function App() {
       case 'GOSSIP':
         gossipRef.current?.receive(message.message, from);
         break;
-        case 'PEER_LIST_REQUEST': {
-          const peers = getPeerIds();
-          send(from, {
-            type: 'GOSSIP',
-            message: {
-              id: crypto.randomUUID(),
-              type: 'PEER_LIST',
-              payload: { peers },
-            },
-          });
-          break;
-        }
-        case 'CRDT_SYNC':
-          applyRemoteUpdate(message.update);
-          break;
-        case 'CRDT_UPDATE':
-          applyRemoteUpdate(message.update);
-          break;
+      case 'PEER_LIST_REQUEST': {
+        const peers = getPeerIds();
+        send(from, {
+          type: 'GOSSIP',
+          message: {
+            id: crypto.randomUUID(),
+            type: 'PEER_LIST',
+            payload: { peers },
+          },
+        });
+        break;
+      }
+      case 'CRDT_SYNC':
+        applyRemoteUpdate(message.update);
+        break;
+      case 'CRDT_UPDATE':
+        applyRemoteUpdate(message.update);
+        break;
     }
   });
 
@@ -84,6 +84,10 @@ function App() {
   // ── CRDT initial sync to newly connected peers ───────────────────────────
   const syncedPeersRef = useRef<Set<string>>(new Set());
 
+  // ── Remote add toasts ────────────────────────────────────────────────────
+  const prevQueueRef = useRef(queue);
+  const localAddGateRef = useRef(false);
+
   useEffect(() => {
     if (currentMode === 'solo') {
       syncedPeersRef.current = new Set();
@@ -105,12 +109,43 @@ function App() {
     }
   }, [connectedPeers, currentMode, getSyncUpdate, send]);
 
+  // ── Remote add toasts: fire when queue grows via yjs sync ────────────────
+  useEffect(() => {
+    if (currentMode !== 'party') {
+      prevQueueRef.current = queue;
+      return;
+    }
+    if (page === 'queue') {
+      prevQueueRef.current = queue;
+      return;
+    }
+
+    const prev = prevQueueRef.current;
+    const prevIds = new Set(prev.map(e => e.uuid));
+    const newEntries = queue.filter(e => !prevIds.has(e.uuid));
+
+    if (newEntries.length > 0 && newEntries.length <= 3 && !localAddGateRef.current) {
+      for (let i = 0; i < newEntries.length; i++) {
+        const id = Date.now() + i;
+        setQueueToasts(p => [...p, id]);
+        setTimeout(() => {
+          setQueueToasts(p => p.filter(t => t !== id));
+        }, 1500);
+      }
+    }
+
+    localAddGateRef.current = false;
+    prevQueueRef.current = queue;
+  }, [queue, currentMode, page]);
+
   // ── Party state ──────────────────────────────────────────────────────────
   const [partyId, setPartyId] = useState<string | null>(
     () => sessionStorage.getItem('song-book:party-id')
   );
   const [dialogVisible, setDialogVisible] = useState(false);
   const [switchPartyDialogVisible, setSwitchPartyDialogVisible] = useState(false);
+  const [duplicateDialogVisible, setDuplicateDialogVisible] = useState(false);
+  const duplicateEntryRef = useRef<Entry | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [joiningStep, setJoiningStep] = useState<'idle' | 'connecting' | 'requesting'>('idle');
   const joinTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -293,6 +328,12 @@ function App() {
   }, []);
 
   const handleAddToQueue = useCallback((entry: Entry) => {
+    if (queue.some(qe => qe.entry.id === entry.id)) {
+      duplicateEntryRef.current = entry;
+      setDuplicateDialogVisible(true);
+      return;
+    }
+    localAddGateRef.current = true;
     addToQueue(entry);
     if (page !== 'queue') {
       const id = Date.now();
@@ -301,7 +342,7 @@ function App() {
         setQueueToasts(prev => prev.filter(t => t !== id));
       }, 1500);
     }
-  }, [addToQueue, page]);
+  }, [addToQueue, queue, page]);
 
   const handleSelect = useCallback((entry: Entry) => {
     setSelectedEntry(entry);
@@ -468,6 +509,49 @@ function App() {
                 }}
               >
                 Stay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {duplicateDialogVisible && (
+        <div className="party-dialog" onClick={() => {
+          setDuplicateDialogVisible(false);
+          duplicateEntryRef.current = null;
+        }}>
+          <div className="party-dialog__box" onClick={(e) => e.stopPropagation()}>
+            <div className="party-dialog__title">This song is already in the queue. Add anyway?</div>
+            <div className="party-dialog__buttons">
+              <button
+                className="party-dialog__button party-dialog__button--yes"
+                onClick={() => {
+                  const entry = duplicateEntryRef.current;
+                  duplicateEntryRef.current = null;
+                  setDuplicateDialogVisible(false);
+                  if (entry) {
+                    localAddGateRef.current = true;
+                    addToQueue(entry);
+                    if (page !== 'queue') {
+                      const id = Date.now();
+                      setQueueToasts(prev => [...prev, id]);
+                      setTimeout(() => {
+                        setQueueToasts(prev => prev.filter(t => t !== id));
+                      }, 1500);
+                    }
+                  }
+                }}
+              >
+                Add
+              </button>
+              <button
+                className="party-dialog__button"
+                onClick={() => {
+                  setDuplicateDialogVisible(false);
+                  duplicateEntryRef.current = null;
+                }}
+              >
+                Cancel
               </button>
             </div>
           </div>
