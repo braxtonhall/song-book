@@ -3,12 +3,13 @@ import { QRCode } from '../components/QRCode';
 import './Page.css';
 import './PartyPage.css';
 import { PeerStatus } from '../partyTypes';
+import { getRockerId } from "../utilities/hash";
 
 interface PartyPageProps {
 	currentMode: 'solo' | 'party';
 	partyId: string | null;
 	joinError: string | null;
-	joiningStep: 'idle' | 'connecting' | 'requesting';
+	joiningStep: 'idle' | 'connecting';
 	peerId: string | null;
 	url: string;
 	peers: { peer: string, status: PeerStatus }[];
@@ -71,7 +72,7 @@ export function PartyPage({
 				<>
 					<div className="party-id">
 						<span className="party-id__label">Party</span>
-						<span className="party-id__value">{partyId}</span>
+						<span className="party-id__value">{getRockerId(partyId)}</span>
 					</div>
 
 					{peerId ? (
@@ -104,7 +105,7 @@ export function PartyPage({
 										key={peer}
 										className={`party-peers__peer${status !== 'active' ? ' party-peers__peer--inactive' : ''}`}
 									>
-										{peer}
+										{getRockerId(peer)}
 									</li>
 								))}
 							</ul>

@@ -8,26 +8,15 @@ function applyLocally(
 	connect: (peerId: string) => void,
 	peerId: string | null,
 ): boolean {
-	switch (gossipMessage.type) {
-		case 'JOIN': {
-			const { peerId: newPeerId } = gossipMessage.payload;
-			if (newPeerId !== peerId) {
-				connect(newPeerId);
+	if (gossipMessage.type === 'PEER_LIST') {
+		const { peers } = gossipMessage.payload;
+		for (const id of peers) {
+			if (id !== peerId) {
+				connect(id);
 			}
-			return true;
 		}
-		case 'PEER_LIST': {
-			const { peers } = gossipMessage.payload;
-			for (const id of peers) {
-				if (id !== peerId) {
-					connect(id);
-				}
-			}
-			return false;
-		}
-		default:
-			return !(gossipMessage satisfies never);
 	}
+	return false;
 }
 
 export function useGossip(

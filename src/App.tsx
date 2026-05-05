@@ -177,13 +177,11 @@ function App() {
   const [duplicateDialogVisible, setDuplicateDialogVisible] = useState(false);
   const duplicateEntryRef = useRef<Entry | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
-  const [joiningStep, setJoiningStep] = useState<'idle' | 'connecting' | 'requesting'>('idle');
+  const [joiningStep, setJoiningStep] = useState<'idle' | 'connecting'>('idle');
   const joinTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const joinBroadcastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialPeerIdRef = useRef<string | null>(null);
   const joinStateRef = useRef<{ partyId: string; peerId: string } | null>(null);
   const switchPartyRef = useRef<{ partyId: string; peerId: string } | null>(null);
-  const joinedRef = useRef(false);
   const joinErrorRetryRef = useRef<{ partyId: string; peerId: string } | null>(null);
   const joiningStepRef = useRef(joiningStep);
   joiningStepRef.current = joiningStep;
@@ -202,12 +200,7 @@ function App() {
     joinErrorRetryRef.current = { partyId: joinPartyId, peerId: initialPeerId };
     initialPeerIdRef.current = initialPeerId;
     setDialogVisible(false);
-    joinedRef.current = false;
     setJoinError(null);
-    if (joinBroadcastTimerRef.current) {
-      clearTimeout(joinBroadcastTimerRef.current);
-      joinBroadcastTimerRef.current = null;
-    }
 
     sessionStorage.setItem('song-book:party-id', joinPartyId);
     enterParty(joinPartyId, copySolo);
@@ -217,7 +210,7 @@ function App() {
     connect(initialPeerId);
 
     joinTimerRef.current = setTimeout(() => {
-      if (joiningStepRef.current !== 'connecting' && joiningStepRef.current !== 'requesting') return;
+      if (joiningStepRef.current !== 'connecting') return;
       setJoinError('Party not found');
       setJoiningStep('idle');
       leaveParty();
@@ -285,33 +278,15 @@ function App() {
       }
       joinErrorRetryRef.current = null;
 
-      setJoiningStep('requesting');
+      setJoiningStep('idle');
       if (partyId) send(initialPeerId, { type: 'PEER_LIST_REQUEST', partyId });
       if (partyId) send(initialPeerId, { type: 'HISTORY_REQUEST', partyId });
     }
   }, [joiningStep, connectedPeers, send, partyId]);
 
-  // ── JOIN broadcast ───────────────────────────────────────────────────────
-  useEffect(() => {
-    if (joiningStep !== 'requesting') return;
-    if (joinedRef.current) return;
-    joinedRef.current = true;
-
-    joinBroadcastTimerRef.current = setTimeout(() => {
-      if (peerId && partyId) {
-        gossip.broadcast({
-          id: crypto.randomUUID(),
-          type: 'JOIN',
-          payload: { peerId, partyId },
-        });
-      }
-      setJoiningStep('idle');
-    }, 500);
-  }, [joiningStep, peerId, partyId, gossip]);
-
   // ── Party badge: detect new peers when user is not on party page ──────────
   useEffect(() => {
-    if (currentMode !== 'party' || joiningStep !== 'idle') {
+    if (currentMode !== 'party') {
       partyPeerBaselineRef.current = 0;
       return;
     }
@@ -326,16 +301,13 @@ function App() {
       setPartyBadge(true);
     }
     partyPeerBaselineRef.current = current;
-  }, [connectedPeers, currentMode, joiningStep, page]);
+  }, [connectedPeers, currentMode, page]);
 
   // ── Cleanup timeouts on unmount ──────────────────────────────────────────
   useEffect(() => {
     return () => {
       if (joinTimerRef.current) {
         clearTimeout(joinTimerRef.current);
-      }
-      if (joinBroadcastTimerRef.current) {
-        clearTimeout(joinBroadcastTimerRef.current);
       }
     };
   }, []);
@@ -356,11 +328,6 @@ function App() {
     setPartyId(null);
     setJoiningStep('idle');
     setJoinError(null);
-    joinedRef.current = false;
-    if (joinBroadcastTimerRef.current) {
-      clearTimeout(joinBroadcastTimerRef.current);
-      joinBroadcastTimerRef.current = null;
-    }
   }, [disconnectAll, leaveParty]);
 
   const handleClearError = useCallback(() => {
@@ -423,7 +390,7 @@ function App() {
 
   // TODO I don't like that this happens every single render
   const statuses = getPeerStatuses();
-  const peers = connectedPeers.map((peer) => ({ peer, status: statuses.get(peer) ?? 'removed' }));
+  const peers = connectedPeers.map((peer) => ({ peer, status: statuses.get(peer) ?? 'active' }));
 
   if (entries === null) {
     return (
