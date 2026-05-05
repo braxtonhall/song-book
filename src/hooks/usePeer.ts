@@ -5,7 +5,7 @@ import { WireMessage } from '../partyTypes';
 const STORAGE_PEER_ID = 'song-book:peer-id';
 const STORAGE_PEERS = 'song-book:peers';
 
-let peer: Peer | null = null;
+let futurePeer: Promise<Peer> | null = null;
 const connections = new Map<string, DataConnection>();
 let onMessageRef: ((from: string, message: WireMessage) => void) | null = null;
 
@@ -60,7 +60,7 @@ function setupDataConnection(conn: DataConnection) {
 }
 
 export function usePeer(onMessage?: (from: string, message: WireMessage) => void) {
-	const [peerId, setPeerId] = useState<string | null>(() => peer?.id ?? null);
+	const [peerId, setPeerId] = useState<string | null>(null);
 	const [connectedPeers, setConnectedPeers] = useState<string[]>(() =>
 		Array.from(connections.keys())
 	);
@@ -70,45 +70,51 @@ export function usePeer(onMessage?: (from: string, message: WireMessage) => void
 	onMessageRef = onMessage ?? null;
 
 	useEffect(() => {
-		if (peer) return;
+		if (futurePeer) {
+			return;
+		}
+		futurePeer = new Promise((resolve) => {
+			const storedId = sessionStorage.getItem(STORAGE_PEER_ID);
+			const peer = storedId ? new Peer(storedId) : new Peer();
 
-		const storedId = sessionStorage.getItem(STORAGE_PEER_ID);
-		peer = storedId ? new Peer(storedId) : new Peer();
+			peer.on('open', (id) => {
+				resolve(peer);
+				sessionStorage.setItem(STORAGE_PEER_ID, id);
+				setPeerId(id);
 
-		peer.on('open', (id) => {
-			sessionStorage.setItem(STORAGE_PEER_ID, id);
-			setPeerId(id);
+				const savedPeers = sessionStorage.getItem(STORAGE_PEERS);
+				if (savedPeers) {
+					try {
+						const peerIds: string[] = JSON.parse(savedPeers);
+						peerIds.forEach((remoteId) => {
+							if (remoteId !== id && !connections.has(remoteId)) {
+								const conn = peer!.connect(remoteId, { reliable: true });
+								setupDataConnection(conn);
+							}
+						});
+					} catch { /* corrupted data — ignore */ }
+				}
+			});
 
-			const savedPeers = sessionStorage.getItem(STORAGE_PEERS);
-			if (savedPeers) {
-				try {
-					const peerIds: string[] = JSON.parse(savedPeers);
-					peerIds.forEach((remoteId) => {
-						if (remoteId !== id && !connections.has(remoteId)) {
-							const conn = peer!.connect(remoteId, { reliable: true });
-							setupDataConnection(conn);
-						}
-					});
-				} catch { /* corrupted data — ignore */ }
-			}
+			peer.on('connection', (conn) => {
+				setupDataConnection(conn);
+			});
+
+			peer.on('error', (err) => {
+				console.warn('PeerJS error:', err.message);
+			});
+
+			peer.on('disconnected', () => {
+				if (!peer?.destroyed) {
+					peer?.reconnect();
+				}
+			});
 		});
 
-		peer.on('connection', (conn) => {
-			setupDataConnection(conn);
-		});
-
-		peer.on('error', (err) => {
-			console.warn('PeerJS error:', err.message);
-		});
-
-		peer.on('disconnected', () => {
-			// PeerJS auto-reconnects by default; no explicit reconnect needed
-		});
 	}, []);
 
 	useEffect(() => {
 		const listener = () => {
-			setPeerId(peer?.id ?? null);
 			setConnectedPeers(Array.from(connections.keys()));
 		};
 		stateListeners.add(listener);
@@ -119,13 +125,15 @@ export function usePeer(onMessage?: (from: string, message: WireMessage) => void
 	}, []);
 
 	const connect = useCallback((remotePeerId: string) => {
-		if (!peer) return;
+		if (!futurePeer) return;
 		if (connections.has(remotePeerId)) return;
+		futurePeer.then((peer) => {
+			const conn = peer.connect(remotePeerId, {
+				reliable: true,
+			});
+			setupDataConnection(conn);
+		})
 
-		const conn = peer.connect(remotePeerId, {
-			reliable: true,
-		});
-		setupDataConnection(conn);
 	}, []);
 
 	const disconnect = useCallback((remotePeerId: string) => {
