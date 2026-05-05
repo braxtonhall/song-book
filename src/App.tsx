@@ -28,6 +28,8 @@ function App() {
   const { queue, addToQueue, reorderQueue, dismissFromQueue, enterParty, leaveParty, currentMode, getSyncUpdate, applyRemoteUpdate, setOnLocalUpdate } = useQueue();
   useHistory();
   const [queueToasts, setQueueToasts] = useState<number[]>([]);
+  const [partyBadge, setPartyBadge] = useState(false);
+  const partyPeerBaselineRef = useRef(0);
   const { password } = useSongPassword();
   const [partyId, setPartyId] = useState<string | null>(
     () => sessionStorage.getItem('song-book:party-id')
@@ -181,6 +183,9 @@ function App() {
   const joinStateRef = useRef<{ partyId: string; peerId: string } | null>(null);
   const switchPartyRef = useRef<{ partyId: string; peerId: string } | null>(null);
   const joinedRef = useRef(false);
+  const joinErrorRetryRef = useRef<{ partyId: string; peerId: string } | null>(null);
+  const joiningStepRef = useRef(joiningStep);
+  joiningStepRef.current = joiningStep;
 
   // ── Create party flow ────────────────────────────────────────────────────
   const startParty = useCallback((copySolo: boolean) => {
@@ -193,6 +198,7 @@ function App() {
   // ── Join flow ────────────────────────────────────────────────────────────
   const executeJoin = useCallback((joinPartyId: string, initialPeerId: string, copySolo: boolean) => {
     joinStateRef.current = null;
+    joinErrorRetryRef.current = { partyId: joinPartyId, peerId: initialPeerId };
     initialPeerIdRef.current = initialPeerId;
     setDialogVisible(false);
     joinedRef.current = false;
@@ -210,6 +216,7 @@ function App() {
     connect(initialPeerId);
 
     joinTimerRef.current = setTimeout(() => {
+      if (joiningStepRef.current !== 'connecting' && joiningStepRef.current !== 'requesting') return;
       setJoinError('Party not found');
       setJoiningStep('idle');
       leaveParty();
@@ -275,6 +282,7 @@ function App() {
         clearTimeout(joinTimerRef.current);
         joinTimerRef.current = null;
       }
+      joinErrorRetryRef.current = null;
 
       setJoiningStep('requesting');
       if (partyId) send(initialPeerId, { type: 'PEER_LIST_REQUEST', partyId });
@@ -299,6 +307,25 @@ function App() {
       setJoiningStep('idle');
     }, 500);
   }, [joiningStep, peerId, partyId, gossip]);
+
+  // ── Party badge: detect new peers when user is not on party page ──────────
+  useEffect(() => {
+    if (currentMode !== 'party' || joiningStep !== 'idle') {
+      partyPeerBaselineRef.current = 0;
+      return;
+    }
+    if (page === 'party') {
+      partyPeerBaselineRef.current = connectedPeers.length;
+      setPartyBadge(false);
+      return;
+    }
+    const prev = partyPeerBaselineRef.current;
+    const current = connectedPeers.length;
+    if (prev > 0 && current > prev) {
+      setPartyBadge(true);
+    }
+    partyPeerBaselineRef.current = current;
+  }, [connectedPeers, currentMode, joiningStep, page]);
 
   // ── Cleanup timeouts on unmount ──────────────────────────────────────────
   useEffect(() => {
@@ -339,7 +366,17 @@ function App() {
     setJoinError(null);
     setJoiningStep('idle');
     sessionStorage.removeItem('song-book:party-id');
+    joinErrorRetryRef.current = null;
   }, []);
+
+  const handleTryAgain = useCallback(() => {
+    const retry = joinErrorRetryRef.current;
+    if (retry) {
+      joinErrorRetryRef.current = null;
+      setJoinError(null);
+      initiateJoin(retry.partyId, retry.peerId);
+    }
+  }, [initiateJoin]);
 
   const url = useMemo(() => {
     const search = new URLSearchParams();
@@ -375,6 +412,10 @@ function App() {
     setSheetDismissed(false);
   }, []);
 
+  // TODO I don't like that this happens every single render
+  const statuses = getPeerStatuses();
+  const peers = connectedPeers.map((peer) => ({ peer, status: statuses.get(peer) ?? 'removed' }));
+
   if (entries === null) {
     return (
       <div className="App App--loading">
@@ -385,7 +426,7 @@ function App() {
 
   return (
     <>
-      <NavBar landscape={landscape} activePage={page} onNavigate={setPage} queueToasts={queueToasts} />
+      <NavBar landscape={landscape} activePage={page} onNavigate={setPage} queueToasts={queueToasts} partyBadge={partyBadge} />
       <div className={`App${landscape && !sheetDismissed ? ' App--panel-open' : ''}`}>
         {page === 'library' && (
           <LibraryPage
@@ -414,10 +455,11 @@ function App() {
             joiningStep={joiningStep}
             peerId={peerId}
             url={url}
-            peers={getPeerStatuses()}
+            peers={peers}
             onStartClick={handleStartClick}
             onLeave={handleLeave}
             onClearError={handleClearError}
+            onTryAgain={handleTryAgain}
           />
         )}
         {page === 'settings' && <SettingsPage />}

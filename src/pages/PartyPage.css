@@ -1,8 +1,29 @@
 .page--party {
-	justify-content: center;
 	align-items: center;
 	gap: 24px;
-	padding: 24px;
+	padding: 48px 24px 36px;
+	overflow-y: auto;
+	scrollbar-gutter: stable;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(255, 255, 255, 0.2) #1c1c1c;
+}
+
+.page--party::-webkit-scrollbar {
+	width: 8px;
+}
+
+.page--party::-webkit-scrollbar-track {
+	background: #1c1c1c;
+}
+
+.page--party::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 3px;
+	border: 2px solid #1c1c1c;
+}
+
+.page--party::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.35);
 }
 
 .party-qr {
@@ -115,16 +136,74 @@
 	color: rgba(255, 255, 255, 0.8);
 }
 
-/* ── Status ── */
+/* ── Party ID ── */
 
-.party-status {
+.party-id {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+.party-id__label {
+	color: rgba(255, 255, 255, 0.4);
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+.party-id__value {
+	color: rgba(255, 255, 255, 0.25);
+	font-size: 12px;
+	font-family: monospace;
+	max-width: 280px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ── Peers ── */
+
+.party-peers {
+	width: min(60vw, 280px);
+}
+
+.party-peers__header {
+	color: rgba(255, 255, 255, 0.4);
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	margin-bottom: 8px;
 	text-align: center;
 }
 
-.party-status span {
+.party-peers__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	background: rgba(255, 255, 255, 0.04);
+	border-radius: 8px;
+}
+
+.party-peers__peer {
+	padding: 8px 12px;
 	color: rgba(255, 255, 255, 0.7);
-	font-size: 14px;
-	font-weight: 500;
+	font-size: 12px;
+	font-family: monospace;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.party-peers__peer:last-child {
+	border-bottom: none;
+}
+
+.party-peers__peer--inactive {
+	color: rgba(255, 255, 255, 0.18);
 }
 
 /* ── Connecting ── */
@@ -224,7 +303,28 @@
 	margin: 0;
 }
 
+.party-error__buttons {
+	display: flex;
+	gap: 8px;
+}
+
 .party-error__retry {
+	padding: 10px 28px;
+	border: none;
+	border-radius: 8px;
+	background: #ffb300;
+	color: #121212;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+.party-error__retry:hover {
+	background: #ffc107;
+}
+
+.party-error__dismiss {
 	padding: 10px 28px;
 	border: none;
 	border-radius: 8px;
@@ -236,6 +336,6 @@
 	transition: background 0.15s;
 }
 
-.party-error__retry:hover {
+.party-error__dismiss:hover {
 	background: rgba(255, 255, 255, 0.18);
 }

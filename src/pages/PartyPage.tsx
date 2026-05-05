@@ -11,10 +11,11 @@ interface PartyPageProps {
 	joiningStep: 'idle' | 'connecting' | 'requesting';
 	peerId: string | null;
 	url: string;
-	peers: Map<string, PeerStatus>;
+	peers: { peer: string, status: PeerStatus }[];
 	onStartClick: () => void;
 	onLeave: () => void;
 	onClearError: () => void;
+	onTryAgain: () => void;
 }
 
 export function PartyPage({
@@ -28,18 +29,27 @@ export function PartyPage({
 	onStartClick,
 	onLeave,
 	onClearError,
+	onTryAgain,
 }: PartyPageProps) {
 	return (
 		<div className="page page--party">
 			{joinError && currentMode === 'solo' && !partyId && (
 				<div className="party-error">
 					<p>{joinError}</p>
-					<button
-						className="party-error__retry"
-						onClick={onClearError}
-					>
-						OK
-					</button>
+					<div className="party-error__buttons">
+						<button
+							className="party-error__retry"
+							onClick={onTryAgain}
+						>
+							Try Again
+						</button>
+						<button
+							className="party-error__dismiss"
+							onClick={onClearError}
+						>
+							Dismiss
+						</button>
+					</div>
 				</div>
 			)}
 
@@ -59,8 +69,9 @@ export function PartyPage({
 
 			{currentMode === 'party' && partyId && joiningStep === 'idle' && (
 				<>
-					<div className="party-status">
-						<span>{peers.size} device{peers.size !== 1 ? 's' : ''} connected</span>
+					<div className="party-id">
+						<span className="party-id__label">Party</span>
+						<span className="party-id__value">{partyId}</span>
 					</div>
 
 					{peerId ? (
@@ -81,6 +92,22 @@ export function PartyPage({
 					) : (
 						<div className="party-connecting">
 							<span>Connecting...</span>
+						</div>
+					)}
+
+					{peers.length > 0 && (
+						<div className="party-peers">
+							<div className="party-peers__header">Devices</div>
+							<ul className="party-peers__list">
+								{peers.map(({ peer, status }) => (
+									<li
+										key={peer}
+										className={`party-peers__peer${status !== 'active' ? ' party-peers__peer--inactive' : ''}`}
+									>
+										{peer}
+									</li>
+								))}
+							</ul>
 						</div>
 					)}
 

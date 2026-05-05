@@ -53,9 +53,10 @@ interface NavBarProps {
 	activePage: PageId;
 	onNavigate: (page: PageId) => void;
 	queueToasts: number[];
+	partyBadge: boolean;
 }
 
-export function NavBar({ landscape, activePage, onNavigate, queueToasts }: NavBarProps) {
+export function NavBar({ landscape, activePage, onNavigate, queueToasts, partyBadge }: NavBarProps) {
 	return (
 		<nav className={`nav-bar${landscape ? ' nav-bar--landscape' : ''}`}>
 			{ICONS.map((item) => (
@@ -69,6 +70,9 @@ export function NavBar({ landscape, activePage, onNavigate, queueToasts }: NavBa
 					{item.id === 'queue' && queueToasts.map((id) => (
 						<span key={id} className="nav-bar__toast">+1</span>
 					))}
+					{item.id === 'party' && partyBadge && (
+						<span className="nav-bar__badge" />
+					)}
 				</button>
 			))}
 		</nav>
