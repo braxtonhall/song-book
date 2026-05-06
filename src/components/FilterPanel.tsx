@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useCallback, Dispatch, SetStateAction } from "react";
 import { Entry, FilterState, DEFAULT_FILTER_STATE, InstrumentKey, isFilterActive } from "../types";
 import { Panel } from "./Panel";
 import "./FilterPanel.css";
@@ -248,110 +248,64 @@ function FilterSection({
 	);
 }
 
-function ChecklistSection({
-	title,
-	items,
-	selected,
-	onChange,
-}: {
-	title: string;
-	items: string[];
-	selected: string[];
-	onChange: (selected: string[]) => void;
-}) {
-	const toggle = (item: string) => {
-		if (selected.includes(item)) {
-			onChange(selected.filter((s) => s !== item));
-		} else {
-			onChange([...selected, item]);
-		}
-	};
-
-	return (
-		<div className="filter-section">
-			<div className="filter-section__header-row">
-				<span className="filter-section__label">{title}</span>
-				{selected.length > 0 && (
-					<button
-						className="filter-section__clear-link"
-						onClick={() => onChange([])}
-						type="button"
-						onPointerDown={(e) => e.stopPropagation()}
-					>
-						Clear
-					</button>
-				)}
-			</div>
-			<div className="checklist" onPointerDown={(e) => e.stopPropagation()}>
-				{items.map((item) => (
-					<label key={item} className="checklist__item">
-						<input
-							type="checkbox"
-							className="checklist__checkbox"
-							checked={selected.includes(item)}
-							onChange={() => toggle(item)}
-						/>
-						<span className="checklist__text">{item}</span>
-					</label>
-				))}
-			</div>
-		</div>
-	);
-}
-
 export function FilterPanel({
 	dismissed,
 	onDismiss,
 	isLandscape,
 	entries,
+	filterState,
 	onFilterChange,
 }: {
 	dismissed: boolean;
 	onDismiss: () => void;
 	isLandscape: boolean;
 	entries: Entry[];
-	onFilterChange?: (state: FilterState) => void;
+	filterState: FilterState;
+	onFilterChange: Dispatch<SetStateAction<FilterState>>;
 }) {
-	const [state, setState] = useState<FilterState>(DEFAULT_FILTER_STATE);
-
-	useEffect(() => {
-		onFilterChange?.(state);
-	}, [state, onFilterChange]);
-
 	const genres = useMemo(() => [...new Set(entries.map((e) => e.genre))].sort(), [entries]);
 	const sources = useMemo(() => [...new Set(entries.map((e) => e.source))].sort(), [entries]);
 
-	const active = isFilterActive(state);
+	const active = isFilterActive(filterState);
 
-	const isDifficultyFiltered = (Object.keys(state.difficulty) as InstrumentKey[]).some(
-		(key) => state.difficulty[key][0] !== 0 || state.difficulty[key][1] !== MAX_DIFFICULTY,
+	const isDifficultyFiltered = (Object.keys(filterState.difficulty) as InstrumentKey[]).some(
+		(key) => filterState.difficulty[key][0] !== 0 || filterState.difficulty[key][1] !== MAX_DIFFICULTY,
 	);
 
-	const setDifficulty = useCallback((key: InstrumentKey, value: [number, number]) => {
-		setState((prev) => ({
-			...prev,
-			difficulty: { ...prev.difficulty, [key]: value },
-		}));
-	}, []);
+	const setDifficulty = useCallback(
+		(key: InstrumentKey, value: [number, number]) => {
+			onFilterChange((prev) => ({
+				...prev,
+				difficulty: { ...prev.difficulty, [key]: value },
+			}));
+		},
+		[onFilterChange],
+	);
 
-	const toggleVocalPart = useCallback((count: number) => {
-		setState((prev) => {
-			const parts = prev.vocalParts.includes(count)
-				? prev.vocalParts.filter((p) => p !== count)
-				: [...prev.vocalParts, count];
-			return { ...prev, vocalParts: parts };
-		});
-	}, []);
+	const toggleVocalPart = useCallback(
+		(count: number) => {
+			onFilterChange((prev) => {
+				const parts = prev.vocalParts.includes(count)
+					? prev.vocalParts.filter((p) => p !== count)
+					: [...prev.vocalParts, count];
+				return { ...prev, vocalParts: parts };
+			});
+		},
+		[onFilterChange],
+	);
 
-	const toggleTag = useCallback((tag: string) => {
-		setState((prev) => {
-			const current = prev.tags[tag] ?? null;
-			const next: boolean | null = current === null ? true : current === true ? false : null;
-			return { ...prev, tags: { ...prev.tags, [tag]: next } };
-		});
-	}, []);
+	const toggleTag = useCallback(
+		(tag: string) => {
+			onFilterChange((prev) => {
+				const current = prev.tags[tag] ?? null;
+				const next: boolean | null = current === null ? true : current === true ? false : null;
+				return { ...prev, tags: { ...prev.tags, [tag]: next } };
+			});
+		},
+		[onFilterChange],
+	);
 
-	const isTagFiltered = Object.values(state.tags).some((v) => v !== null);
+	const isTagFiltered = Object.values(filterState.tags).some((v) => v !== null);
 
 	const [openSection, setOpenSection] = useState<SectionId | null>(null);
 
@@ -367,7 +321,7 @@ export function FilterPanel({
 					{active && (
 						<button
 							className="filter-panel__clear-all"
-							onClick={() => setState(DEFAULT_FILTER_STATE)}
+							onClick={() => onFilterChange(DEFAULT_FILTER_STATE)}
 							type="button"
 							onPointerDown={(e) => e.stopPropagation()}
 						>
@@ -379,14 +333,18 @@ export function FilterPanel({
 				<FilterSection
 					id="vocalParts"
 					label="Vocal Parts"
-					hasActiveFilters={state.vocalParts.length > 0}
-					onClear={() => setState((prev) => ({ ...prev, vocalParts: [] }))}
+					hasActiveFilters={filterState.vocalParts.length > 0}
+					onClear={() => onFilterChange((prev) => ({ ...prev, vocalParts: [] }))}
 					open={openSection === "vocalParts"}
 					onToggle={toggleSection}
 				>
 					<div className="filter-chip-row" onPointerDown={(e) => e.stopPropagation()}>
 						{VOCAL_PARTS.map(({ count, icon, label }) => (
-							<FilterChip key={count} active={state.vocalParts.includes(count)} onClick={() => toggleVocalPart(count)}>
+							<FilterChip
+								key={count}
+								active={filterState.vocalParts.includes(count)}
+								onClick={() => toggleVocalPart(count)}
+							>
 								{icon && <img className="filter-chip__icon" src={`${process.env.PUBLIC_URL}/icons/${icon}`} alt="" />}
 								{label}
 							</FilterChip>
@@ -398,7 +356,7 @@ export function FilterPanel({
 					id="difficulty"
 					label="Difficulty"
 					hasActiveFilters={isDifficultyFiltered}
-					onClear={() => setState((prev) => ({ ...prev, difficulty: DEFAULT_FILTER_STATE.difficulty }))}
+					onClear={() => onFilterChange((prev) => ({ ...prev, difficulty: DEFAULT_FILTER_STATE.difficulty }))}
 					open={openSection === "difficulty"}
 					onToggle={toggleSection}
 				>
@@ -407,7 +365,7 @@ export function FilterPanel({
 							<InstrumentRow
 								key={inst.key}
 								instrument={inst}
-								value={state.difficulty[inst.key]}
+								value={filterState.difficulty[inst.key]}
 								onChange={(v) => setDifficulty(inst.key, v)}
 							/>
 						))}
@@ -417,8 +375,8 @@ export function FilterPanel({
 				<FilterSection
 					id="genre"
 					label="Genre"
-					hasActiveFilters={state.genres.length > 0}
-					onClear={() => setState((prev) => ({ ...prev, genres: [] }))}
+					hasActiveFilters={filterState.genres.length > 0}
+					onClear={() => onFilterChange((prev) => ({ ...prev, genres: [] }))}
 					open={openSection === "genre"}
 					onToggle={toggleSection}
 				>
@@ -428,9 +386,9 @@ export function FilterPanel({
 								<input
 									type="checkbox"
 									className="checklist__checkbox"
-									checked={state.genres.includes(item)}
+									checked={filterState.genres.includes(item)}
 									onChange={() => {
-										setState((prev) => ({
+										onFilterChange((prev) => ({
 											...prev,
 											genres: prev.genres.includes(item)
 												? prev.genres.filter((s) => s !== item)
@@ -447,8 +405,8 @@ export function FilterPanel({
 				<FilterSection
 					id="source"
 					label="Source"
-					hasActiveFilters={state.sources.length > 0}
-					onClear={() => setState((prev) => ({ ...prev, sources: [] }))}
+					hasActiveFilters={filterState.sources.length > 0}
+					onClear={() => onFilterChange((prev) => ({ ...prev, sources: [] }))}
 					open={openSection === "source"}
 					onToggle={toggleSection}
 				>
@@ -458,9 +416,9 @@ export function FilterPanel({
 								<input
 									type="checkbox"
 									className="checklist__checkbox"
-									checked={state.sources.includes(item)}
+									checked={filterState.sources.includes(item)}
 									onChange={() => {
-										setState((prev) => ({
+										onFilterChange((prev) => ({
 											...prev,
 											sources: prev.sources.includes(item)
 												? prev.sources.filter((s) => s !== item)
@@ -478,13 +436,13 @@ export function FilterPanel({
 					id="tags"
 					label="Tags"
 					hasActiveFilters={isTagFiltered}
-					onClear={() => setState((prev) => ({ ...prev, tags: {} }))}
+					onClear={() => onFilterChange((prev) => ({ ...prev, tags: {} }))}
 					open={openSection === "tags"}
 					onToggle={toggleSection}
 				>
 					<div className="filter-chip-row" onPointerDown={(e) => e.stopPropagation()}>
 						{TAGS.map((tag) => {
-							const val = state.tags[tag] ?? null;
+							const val = filterState.tags[tag] ?? null;
 							return (
 								<button
 									key={tag}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Entry, isFilterActive } from "./types";
+import { Entry, FilterState, DEFAULT_FILTER_STATE, isFilterActive } from "./types";
 import { getEntries } from "./api/entries";
 import { DetailPanel } from "./components/DetailPanel";
 import { FilterPanel } from "./components/FilterPanel";
@@ -34,7 +34,8 @@ function App() {
 	const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
 	const [sheetDismissed, setSheetDismissed] = useState(true);
 	const [filterDismissed, setFilterDismissed] = useState(true);
-	const [filterActive, setFilterActive] = useState(false);
+	const [filterState, setFilterState] = useState<FilterState>(DEFAULT_FILTER_STATE);
+	const filterActive = isFilterActive(filterState);
 	const {
 		queue,
 		addToQueue,
@@ -497,6 +498,7 @@ function App() {
 						onAddToQueue={handleAddToQueue}
 						onToggleFilter={handleToggleFilter}
 						filterActive={filterActive}
+						filterState={filterState}
 					/>
 				)}
 				{page === "queue" && (
@@ -547,7 +549,8 @@ function App() {
 					onDismiss={() => setFilterDismissed(true)}
 					isLandscape={landscape}
 					entries={entries}
-					onFilterChange={(state) => setFilterActive(isFilterActive(state))}
+					filterState={filterState}
+					onFilterChange={setFilterState}
 				/>
 			</div>
 

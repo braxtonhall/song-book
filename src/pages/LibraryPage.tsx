@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { List, ListImperativeAPI, useListRef } from "react-window";
 import Fuse from "fuse.js";
-import { Entry } from "../types";
+import { Entry, FilterState } from "../types";
 import { SearchBar } from "../components/SearchBar";
 import { AlphaIndex } from "../components/AlphaIndex";
 import { ListRow } from "../components/ListRow";
@@ -39,6 +39,7 @@ interface LibraryPageProps {
 	onAddToQueue?: (entry: Entry) => void;
 	onToggleFilter: () => void;
 	filterActive: boolean;
+	filterState: FilterState;
 }
 
 export function LibraryPage({
@@ -49,6 +50,7 @@ export function LibraryPage({
 	onAddToQueue,
 	onToggleFilter,
 	filterActive,
+	filterState,
 }: LibraryPageProps) {
 	const commonRowHeight = useRowHeight();
 	const listRef = useListRef(null);
