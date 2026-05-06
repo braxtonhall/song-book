@@ -113,7 +113,17 @@
 }
 
 .filter-section__body {
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows 0.25s ease;
+}
+
+.filter-section__body > * {
 	overflow: hidden;
+}
+
+.filter-section--open .filter-section__body {
+	grid-template-rows: 1fr;
 }
 
 /* Filter Chips */

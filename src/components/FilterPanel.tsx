@@ -243,7 +243,7 @@ function FilterSection({
 					</svg>
 				</span>
 			</div>
-			{open && <div className="filter-section__body">{children}</div>}
+			<div className="filter-section__body">{children}</div>
 		</div>
 	);
 }
