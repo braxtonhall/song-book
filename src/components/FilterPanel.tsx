@@ -25,7 +25,13 @@ const VOCAL_PARTS = [
 	{ count: 3, icon: "vocals-3.png", label: "3" },
 ];
 
-const TAGS = ["Multitracks", "Master", "2x Bass"];
+const TAGS: (keyof Entry)[] = ["multitracks", "master", "2xBass"];
+
+const TAG_LABELS: { [K in keyof Entry]?: string } = {
+	multitracks: "Multitracks",
+	master: "Master",
+	"2xBass": "2x Bass",
+};
 
 function DualRangeSlider({
 	value,
@@ -295,7 +301,7 @@ export function FilterPanel({
 	);
 
 	const toggleTag = useCallback(
-		(tag: string) => {
+		(tag: keyof Entry) => {
 			onFilterChange((prev) => {
 				const current = prev.tags[tag] ?? null;
 				const next: boolean | null = current === null ? true : current === true ? false : null;
@@ -474,7 +480,7 @@ export function FilterPanel({
 											<circle cx="12" cy="8" r="1.5" fill="currentColor" />
 										</svg>
 									)}
-									{tag}
+									{TAG_LABELS[tag]}
 								</button>
 							);
 						})}

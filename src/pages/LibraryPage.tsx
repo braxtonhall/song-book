@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { List, ListImperativeAPI, useListRef } from "react-window";
 import Fuse from "fuse.js";
 import { Entry, FilterState } from "../types";
+import { filter } from "../utilities/filter";
 import { SearchBar } from "../components/SearchBar";
 import { AlphaIndex } from "../components/AlphaIndex";
 import { ListRow } from "../components/ListRow";
@@ -10,6 +11,7 @@ import { useRowHeight } from "../hooks/useRowHeight";
 import { useDebounce } from "../hooks/useDebounce";
 import "./Page.css";
 import "./LibraryPage.css";
+import { sort } from "../utilities/sort";
 
 const SORT_HEADER_HEIGHT = 44;
 const SORT_STORAGE_KEY = "song-book:library-sort";
@@ -61,7 +63,11 @@ export function LibraryPage({
 	const [visibleStart, setVisibleStart] = useState(0);
 	const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-	const fuse = useMemo(() => new Fuse(entries, FUSE_OPTIONS), [entries]);
+	const filteredEntries = useMemo(() => {
+		return entries.filter(filter(filterState));
+	}, [filterState, entries]);
+
+	const fuse = useMemo(() => new Fuse(filteredEntries, FUSE_OPTIONS), [filteredEntries]);
 
 	const rowHeight = useCallback(
 		(index: number) => (!debouncedQuery && index === 0 ? SORT_HEADER_HEIGHT : commonRowHeight),
@@ -83,15 +89,9 @@ export function LibraryPage({
 		} catch {}
 	}, [sortBy]);
 
-	const sortedEntries = useMemo(
-		() =>
-			[...entries].sort((a, b) =>
-				sortBy === "artist" ? a.sortArtist.localeCompare(b.sortArtist) : a.sortSong.localeCompare(b.sortSong),
-			),
-		[entries, sortBy],
-	);
+	const sortedEntries = useMemo(() => [...filteredEntries].sort(sort(sortBy)), [filteredEntries, sortBy]);
 
-	const filteredEntries = useMemo(() => {
+	const searchResults = useMemo(() => {
 		if (!debouncedQuery) return sortedEntries;
 		return fuse.search(debouncedQuery).map((r) => r.item);
 	}, [debouncedQuery, sortedEntries, fuse]);
@@ -109,20 +109,20 @@ export function LibraryPage({
 
 	const letterFirstIndex = useMemo(() => {
 		const map: Record<string, number> = {};
-		filteredEntries.forEach((e, i) => {
+		searchResults.forEach((e, i) => {
 			const letter = (sortBy === "artist" ? e.sortArtist : e.sortSong)[0]?.toUpperCase();
 			if (letter && !(letter in map)) map[letter] = i + headerOffset;
 		});
 		return map;
-	}, [filteredEntries, headerOffset, sortBy]);
+	}, [searchResults, headerOffset, sortBy]);
 
 	useEffect(() => {
-		if (filteredEntries.length > 0) {
+		if (searchResults.length > 0) {
 			listRef.current?.scrollToRow({ index: 0, behavior: "instant" });
 		}
-	}, [debouncedQuery, listRef, filteredEntries]);
+	}, [debouncedQuery, listRef, searchResults]);
 
-	const visibleEntry = filteredEntries[visibleStart - headerOffset];
+	const visibleEntry = searchResults[visibleStart - headerOffset];
 	const currentLetter = visibleEntry
 		? ((sortBy === "artist" ? visibleEntry.sortArtist : visibleEntry.sortSong)[0]?.toUpperCase() ?? null)
 		: null;
@@ -150,10 +150,10 @@ export function LibraryPage({
 					listRef={listRef}
 					className={undefined}
 					rowComponent={ListRow}
-					rowCount={filteredEntries.length + headerOffset}
+					rowCount={searchResults.length + headerOffset}
 					rowHeight={rowHeight}
 					rowProps={{
-						entries: filteredEntries,
+						entries: searchResults,
 						onSelect,
 						headerOffset,
 						sortBy,

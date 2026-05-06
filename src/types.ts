@@ -14,7 +14,7 @@ export type FilterState = {
 	sources: string[];
 	vocalParts: number[];
 	difficulty: Record<InstrumentKey, [number, number]>;
-	tags: Record<string, boolean | null>;
+	tags: { [K in keyof Entry]?: boolean | null };
 };
 
 const defaultDifficulty: Record<InstrumentKey, [number, number]> = {
@@ -59,6 +59,7 @@ export type Entry = {
 	source: string;
 	year: number;
 	albumName: string;
+	sortAlbumName: string;
 	albumTrackIndex: number;
 	id: number;
 	hex: string;
@@ -78,4 +79,5 @@ export type Entry = {
 	duration: number;
 	author: string;
 	ogg: string;
+	"2xBass": boolean;
 };

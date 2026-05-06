@@ -76,8 +76,9 @@ export const getEntries = async (): Promise<Entry[]> => {
 					console.log("Game origin missing for", songPackage);
 					return "unknown"; // TODO
 				})(),
-			year: songPackage.yearReleased,
+			year: songPackage.yearReleased ?? 0,
 			albumName: songPackage.albumName,
+			sortAlbumName: songPackage.albumName && normalize(songPackage.albumName),
 			albumTrackIndex: songPackage.albumTrackNumber,
 			id: songPackage.songId,
 			hex: stringToColour(String(hashString(String(index * 13)))),
@@ -96,6 +97,7 @@ export const getEntries = async (): Promise<Entry[]> => {
 			rating: songPackage.rating,
 			duration: songPackage.songLength,
 			ogg,
+			"2xBass": c3Comments["2xBass"] ?? songPackage.name.endsWith("(2x Bass Pedal)"),
 		};
 	});
 };
