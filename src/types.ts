@@ -1,5 +1,5 @@
 export type Entry = {
-	albumArt: string;
+	albumArt: string | string;
 	song: string;
 	sortSong: string;
 	artist: string;

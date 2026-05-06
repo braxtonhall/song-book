@@ -84,7 +84,14 @@ export function AudioPlayer({ entry, dismissed }: { entry: Entry | null; dismiss
 	useEffect(() => {
 		const ms = navigator.mediaSession;
 		if (entry && !dismissed) {
-			ms.metadata = new MediaMetadata({ title: entry.song, artist: entry.artist, album: entry.albumName });
+			ms.metadata = new MediaMetadata({
+				title: entry.song,
+				artist: entry.artist,
+				album: entry.albumName,
+				artwork: entry.albumArt
+					? [{ src: `https://braxtonhall.ca/song-book-resources/art/${entry.albumArt}.png`, type: "image/png" }]
+					: [],
+			});
 			ms.playbackState = isPlaying ? "playing" : "paused";
 			ms.setActionHandler("play", () => {
 				if (!dismissedRef.current && !audioRef.current) {
