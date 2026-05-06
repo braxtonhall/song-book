@@ -2,7 +2,7 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 
 # Features
 
-- filters!
+- Show the number of songs in the sort thingy "Showing N of M Songs"
 - Filter on more of the C3 comments
 - When you sort by difficulty, we need to add the headers. The alpha row will need some thinking
 - Sorting by difficulty, the difficulties are grouped in the menu
