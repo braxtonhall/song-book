@@ -38,6 +38,7 @@ interface LibraryPageProps {
 	panelOpen: boolean;
 	onAddToQueue?: (entry: Entry) => void;
 	onToggleFilter: () => void;
+	filterActive: boolean;
 }
 
 export function LibraryPage({
@@ -47,6 +48,7 @@ export function LibraryPage({
 	panelOpen,
 	onAddToQueue,
 	onToggleFilter,
+	filterActive,
 }: LibraryPageProps) {
 	const commonRowHeight = useRowHeight();
 	const listRef = useListRef(null);
@@ -138,6 +140,7 @@ export function LibraryPage({
 					>
 						<polygon points="2,4 8,12 8,16 12,14 12,12 18,4" />
 					</svg>
+					{filterActive && <span className="library-filters-dot" />}
 				</button>
 			</div>
 			<div className="list-wrapper">

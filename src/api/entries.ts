@@ -9,42 +9,42 @@ function selectDifficulty(
 	t4: number,
 	t5: number,
 	t6: number,
-): number | null {
-	if (diff === undefined || diff === null || diff <= 0) return null;
-	if (diff < t1) return 0;
-	if (diff < t2) return 1;
-	if (diff < t3) return 2;
-	if (diff < t4) return 3;
-	if (diff < t5) return 4;
-	if (diff < t6) return 5;
-	return 6;
+): number {
+	if (diff === undefined || diff === null || diff <= 0) return 0;
+	if (diff < t1) return 1;
+	if (diff < t2) return 2;
+	if (diff < t3) return 3;
+	if (diff < t4) return 4;
+	if (diff < t5) return 5;
+	if (diff < t6) return 6;
+	return 7;
 }
 
-function drumDiff(rank: number | null): number | null {
+function drumDiff(rank: number | null): number {
 	return selectDifficulty(rank, 124, 151, 178, 242, 345, 448);
 }
-function guitarDiff(rank: number | null): number | null {
+function guitarDiff(rank: number | null): number {
 	return selectDifficulty(rank, 139, 176, 221, 267, 333, 409);
 }
-function bassDiff(rank: number | null): number | null {
+function bassDiff(rank: number | null): number {
 	return selectDifficulty(rank, 135, 181, 228, 293, 364, 436);
 }
-function vocalsDiff(rank: number | null): number | null {
+function vocalsDiff(rank: number | null): number {
 	return selectDifficulty(rank, 132, 175, 218, 279, 353, 427);
 }
-function keysDiff(rank: number | null): number | null {
+function keysDiff(rank: number | null): number {
 	return selectDifficulty(rank, 153, 211, 269, 327, 385, 443);
 }
-function proKeysDiff(rank: number | null): number | null {
+function proKeysDiff(rank: number | null): number {
 	return selectDifficulty(rank, 153, 211, 269, 327, 385, 443);
 }
-function proGuitarDiff(rank: number | null): number | null {
+function proGuitarDiff(rank: number | null): number {
 	return selectDifficulty(rank, 150, 208, 267, 325, 384, 442);
 }
-function proBassDiff(rank: number | null): number | null {
+function proBassDiff(rank: number | null): number {
 	return selectDifficulty(rank, 150, 208, 267, 325, 384, 442);
 }
-function bandDiff(rank: number | null): number | null {
+function bandDiff(rank: number | null): number {
 	return selectDifficulty(rank, 165, 215, 243, 267, 292, 345);
 }
 
@@ -90,7 +90,7 @@ export const getEntries = async (): Promise<Entry[]> => {
 			proGuitarDifficulty: proGuitarDiff(songPackage.rank.real_guitar),
 			proBassDifficulty: proBassDiff(songPackage.rank.real_bass),
 			bandDifficulty: bandDiff(songPackage.rank.band)!,
-			vocalParts: songPackage.song.vocalParts ?? (vocalsDifficulty === null ? 0 : 1),
+			vocalParts: songPackage.song.vocalParts ?? (vocalsDifficulty === 0 ? 0 : 1),
 			multitracks: c3Comments.multitrack ?? true,
 			master: songPackage.master,
 			rating: songPackage.rating,

@@ -6,7 +6,16 @@ import { useSongPassword } from "../hooks/useSongPassword";
 import "./DetailPanel.css";
 
 const RATING_LABELS = ["Unrated", "Family Friendly", "Supervision Recommended"];
-const DIFFICULTY_LABELS = ["Warmup", "Apprentice", "Solid", "Moderate", "Challenging", "Nightmare", "Impossible"];
+const DIFFICULTY_LABELS = [
+	"No Part",
+	"Warmup",
+	"Apprentice",
+	"Solid",
+	"Moderate",
+	"Challenging",
+	"Nightmare",
+	"Impossible",
+];
 
 function formatDuration(ms: number): string {
 	const totalSeconds = Math.round(ms / 1000);
@@ -15,19 +24,19 @@ function formatDuration(ms: number): string {
 	return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-function DifficultyDots({ value }: { value: number | null }) {
-	if (value === null) return <span className="detail-panel__diff-none">No Part</span>;
-	const diffDotFillClass = value === 6 ? " detail-panel__diff-dot--red" : " detail-panel__diff-dot--filled";
+function DifficultyDots({ value }: { value: number }) {
+	if (!value) return <span className="detail-panel__diff-none">No Part</span>;
+	const diffDotFillClass = value === 7 ? " detail-panel__diff-dot--red" : " detail-panel__diff-dot--filled";
 	return (
 		<span className="detail-panel__diff-dots" aria-label={`Difficulty of ${DIFFICULTY_LABELS[value]}`}>
 			{Array.from({ length: 5 }).map((_, i) => (
-				<span key={i} className={`detail-panel__diff-dot${i < value ? diffDotFillClass : ""}`} />
+				<span key={i} className={`detail-panel__diff-dot${i < value - 1 ? diffDotFillClass : ""}`} />
 			))}
 		</span>
 	);
 }
 
-function DifficultyRow({ icon, alt, value }: { icon: string; alt: string; value: number | null }) {
+function DifficultyRow({ icon, alt, value }: { icon: string; alt: string; value: number }) {
 	return (
 		<div className="detail-panel__diff-row">
 			<img className="detail-panel__diff-label" src={`${process.env.PUBLIC_URL}/icons/${icon}`} alt={alt} />

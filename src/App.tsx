@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Entry } from "./types";
+import { Entry, isFilterActive } from "./types";
 import { getEntries } from "./api/entries";
 import { DetailPanel } from "./components/DetailPanel";
 import { FilterPanel } from "./components/FilterPanel";
@@ -34,6 +34,7 @@ function App() {
 	const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
 	const [sheetDismissed, setSheetDismissed] = useState(true);
 	const [filterDismissed, setFilterDismissed] = useState(true);
+	const [filterActive, setFilterActive] = useState(false);
 	const {
 		queue,
 		addToQueue,
@@ -495,6 +496,7 @@ function App() {
 						panelOpen={!sheetDismissed}
 						onAddToQueue={handleAddToQueue}
 						onToggleFilter={handleToggleFilter}
+						filterActive={filterActive}
 					/>
 				)}
 				{page === "queue" && (
@@ -540,7 +542,13 @@ function App() {
 					isLandscape={landscape}
 					onAddToQueue={handleAddToQueue}
 				/>
-				<FilterPanel dismissed={filterDismissed} onDismiss={() => setFilterDismissed(true)} isLandscape={landscape} />
+				<FilterPanel
+					dismissed={filterDismissed}
+					onDismiss={() => setFilterDismissed(true)}
+					isLandscape={landscape}
+					entries={entries}
+					onFilterChange={(state) => setFilterActive(isFilterActive(state))}
+				/>
 			</div>
 
 			{dialogVisible && (

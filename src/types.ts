@@ -1,3 +1,54 @@
+export type InstrumentKey =
+	| "guitar"
+	| "bass"
+	| "drums"
+	| "keys"
+	| "vocals"
+	| "proGuitar"
+	| "proBass"
+	| "proKeys"
+	| "band";
+
+export type FilterState = {
+	genres: string[];
+	sources: string[];
+	vocalParts: number[];
+	difficulty: Record<InstrumentKey, [number, number]>;
+	tags: Record<string, boolean | null>;
+};
+
+const defaultDifficulty: Record<InstrumentKey, [number, number]> = {
+	guitar: [0, 8],
+	bass: [0, 8],
+	drums: [0, 8],
+	keys: [0, 8],
+	vocals: [0, 8],
+	proGuitar: [0, 8],
+	proBass: [0, 8],
+	proKeys: [0, 8],
+	band: [0, 8],
+};
+
+export const DEFAULT_FILTER_STATE: FilterState = {
+	genres: [],
+	sources: [],
+	vocalParts: [],
+	difficulty: defaultDifficulty,
+	tags: {},
+};
+
+export function isFilterActive(state: FilterState): boolean {
+	return (
+		state.genres.length > 0 ||
+		state.sources.length > 0 ||
+		state.vocalParts.length > 0 ||
+		(Object.keys(state.difficulty) as InstrumentKey[]).some(
+			(key) => state.difficulty[key][0] !== 0 || state.difficulty[key][1] !== 8,
+		) ||
+		Object.values(state.tags).some((v) => v !== null)
+	);
+}
+
 export type Entry = {
 	albumArt: string | string;
 	song: string;
@@ -11,14 +62,14 @@ export type Entry = {
 	albumTrackIndex: number;
 	id: number;
 	hex: string;
-	vocalsDifficulty: number | null;
-	guitarDifficulty: number | null;
-	drumDifficulty: number | null;
-	bassDifficulty: number | null;
-	keysDifficulty: number | null;
-	proKeysDifficulty: number | null;
-	proGuitarDifficulty: number | null;
-	proBassDifficulty: number | null;
+	vocalsDifficulty: number;
+	guitarDifficulty: number;
+	drumDifficulty: number;
+	bassDifficulty: number;
+	keysDifficulty: number;
+	proKeysDifficulty: number;
+	proGuitarDifficulty: number;
+	proBassDifficulty: number;
 	bandDifficulty: number;
 	vocalParts: number;
 	multitracks: boolean;

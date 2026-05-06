@@ -3,6 +3,7 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 # Features
 
 - filters!
+- Filter on more of the C3 comments
 - When you sort by difficulty, we need to add the headers. The alpha row will need some thinking
 - Sorting by difficulty, the difficulties are grouped in the menu
 - actual favicon and unfurling metadata
