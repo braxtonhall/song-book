@@ -4,6 +4,7 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 
 - Filter on more of the C3 comments
 - actual favicon and unfurling metadata
+- add names to the genres/sources
 
 # Changes
 
@@ -18,3 +19,6 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - Difficulty sliders don't fit on v small screen
 - Difficulty is pretty much unusable on small screen
 - Gossip protocol should know about parties. Only gossip the current party.
+- rb1 songs have no album art
+- rb3 songs have no lyrics
+- If you dismiss the panel and then catch it while dismissing, it gets stuck in an in-between state
