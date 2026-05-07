@@ -7,7 +7,7 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - When you sort by difficulty, we need to add the headers. The alpha row will need some thinking
 - Sorting by difficulty, the difficulties are grouped in the menu
 - clicking on the instument defaults to [0, 8] -> [1, 8]
-
+- Decades filter
 - actual favicon and unfurling metadata
 - Lyrics
 

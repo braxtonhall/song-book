@@ -1,9 +1,9 @@
 import { useEffect, useCallback } from "react";
 import { WireMessage, PeerStatus } from "../partyTypes";
 
-const PEER_MISS_THRESHOLD_ABSENT = 2;
-const PEER_MISS_THRESHOLD_REMOVED = 4;
-const PING_INTERVAL_MS = 5 * 60 * 1000;
+const PEER_MISS_THRESHOLD_ABSENT = 3;
+const PEER_MISS_THRESHOLD_REMOVED = 6;
+const PING_INTERVAL_MS = 30 * 1000;
 
 const missCounts = new Map<string, number>();
 const peerStatuses = new Map<string, PeerStatus>();

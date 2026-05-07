@@ -48,7 +48,6 @@ function setupDataConnection(conn: DataConnection) {
 	const remoteId = conn.peer;
 
 	conn.on("open", () => {
-		connections.set(remoteId, conn);
 		persistConnectedPeers();
 		notifyConnectedPeersChange();
 		sendPeerList(conn, remoteId);
@@ -63,7 +62,10 @@ function setupDataConnection(conn: DataConnection) {
 		} catch {
 			return;
 		}
-		onMessageRef(remoteId, message);
+		if (message.partyId === partyIdRef) {
+			connections.set(remoteId, conn);
+			onMessageRef(remoteId, message);
+		}
 	});
 
 	conn.on("close", () => {
