@@ -23,6 +23,3 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - Difficulty sliders don't fit on v small screen
 - Difficulty is pretty much unusable on small screen
 - Gossip protocol should know about parties. Only gossip the current party.
-- What happens if you change from wifi to another network?
-  - We should try to connect with a new peer id
-  - Ask everyone we've ever seen before one at a time

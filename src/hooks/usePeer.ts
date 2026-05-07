@@ -1,20 +1,30 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Peer, DataConnection } from "peerjs";
 import { WireMessage } from "../partyTypes";
 
 const STORAGE_PEER_ID = "song-book:peer-id";
 const STORAGE_PEERS = "song-book:peers";
+const RECONNECT_DELAY_MS = 5000;
 
+// ── Module-level singleton state ─────────────────────────────────────────────
 let futurePeer: Promise<Peer> | null = null;
 const connections = new Map<string, DataConnection>();
-// TODO these should be a set of listeners
+const stateListeners = new Set<() => void>();
+
 let onMessageRef: ((from: string, message: WireMessage) => void) | null = null;
 let onConnectRef: ((peerId: string) => void) | null = null;
+let onRejoinFailedRef: (() => void) | null = null;
 let partyIdRef: string | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-type Listener = () => void;
-const stateListeners = new Set<Listener>();
+function clearReconnectTimer() {
+	if (retryTimer) {
+		clearTimeout(retryTimer);
+		retryTimer = null;
+	}
+}
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
 function persistConnectedPeers() {
 	const peerIds = Array.from(connections.keys());
 	if (peerIds.length > 0) {
@@ -26,6 +36,12 @@ function persistConnectedPeers() {
 
 function notifyConnectedPeersChange() {
 	stateListeners.forEach((fn) => fn());
+}
+
+function removeConnection(remoteId: string) {
+	connections.delete(remoteId);
+	persistConnectedPeers();
+	notifyConnectedPeersChange();
 }
 
 function sendPeerList(conn: DataConnection, remoteId: string) {
@@ -42,6 +58,25 @@ function sendPeerList(conn: DataConnection, remoteId: string) {
 			},
 		}),
 	);
+}
+
+function connectToStoredPeers(peer: Peer): number {
+	const savedPeers = sessionStorage.getItem(STORAGE_PEERS);
+	if (!savedPeers) return 0;
+	try {
+		const peerIds: string[] = JSON.parse(savedPeers);
+		let attempted = 0;
+		for (const remoteId of peerIds) {
+			if (remoteId !== peer.id && !connections.has(remoteId)) {
+				const conn = peer.connect(remoteId, { reliable: true });
+				setupDataConnection(conn);
+				attempted++;
+			}
+		}
+		return attempted;
+	} catch {
+		return 0;
+	}
 }
 
 function setupDataConnection(conn: DataConnection) {
@@ -68,81 +103,103 @@ function setupDataConnection(conn: DataConnection) {
 		}
 	});
 
-	conn.on("close", () => {
-		connections.delete(remoteId);
-		persistConnectedPeers();
-		notifyConnectedPeersChange();
-	});
+	conn.on("close", () => removeConnection(remoteId));
 
 	conn.on("error", (err) => {
 		console.warn(`Connection error with ${remoteId}:`, err.message);
-		connections.delete(remoteId);
-		persistConnectedPeers();
-		notifyConnectedPeersChange();
+		removeConnection(remoteId);
 	});
 }
 
+// ── Internal cleanup (no react state) ────────────────────────────────────────
+function destroyPeer() {
+	clearReconnectTimer();
+	connections.forEach((conn) => conn.close());
+	connections.clear();
+	persistConnectedPeers();
+	notifyConnectedPeersChange();
+	sessionStorage.removeItem(STORAGE_PEER_ID);
+	if (futurePeer) {
+		futurePeer.then((peer) => peer.destroy()).catch(() => {});
+	}
+	futurePeer = null;
+}
+
+// ── Types ────────────────────────────────────────────────────────────────────
 type UsePeerProps = {
 	partyId: string | null;
 	onMessage: (from: string, message: WireMessage) => void;
 	onConnect: (peerId: string) => void;
+	onRejoinFailed?: () => void;
 };
 
-export function usePeer({ partyId, onMessage, onConnect }: UsePeerProps) {
+export function usePeer({ partyId, onMessage, onConnect, onRejoinFailed }: UsePeerProps) {
 	const [peerId, setPeerId] = useState<string | null>(null);
 	const [connectedPeers, setConnectedPeers] = useState<string[]>(() => Array.from(connections.keys()));
 
-	const onMessageSavedRef = useRef(onMessage);
-	onMessageSavedRef.current = onMessage;
 	onMessageRef = onMessage;
 	onConnectRef = onConnect;
+	onRejoinFailedRef = onRejoinFailed ?? null;
 	partyIdRef = partyId;
 
 	const initPeer = useCallback(() => {
-		if (futurePeer) {
-			return;
-		}
-		futurePeer = new Promise((resolve) => {
-			const storedId = sessionStorage.getItem(STORAGE_PEER_ID);
+		if (futurePeer) return;
+
+		const tryOpen = (useStoredId: boolean) => {
+			const storedId = useStoredId ? sessionStorage.getItem(STORAGE_PEER_ID) : null;
 			const peer = storedId ? new Peer(storedId) : new Peer();
+			let opened = false;
 
-			peer.on("open", (id) => {
-				resolve(peer);
-				sessionStorage.setItem(STORAGE_PEER_ID, id);
-				setPeerId(id);
+			futurePeer = new Promise((resolve) => {
+				peer.on("open", (id) => {
+					if (opened) return;
+					opened = true;
+					resolve(peer);
+					sessionStorage.setItem(STORAGE_PEER_ID, id);
+					setPeerId(id);
 
-				const savedPeers = sessionStorage.getItem(STORAGE_PEERS);
-				if (savedPeers) {
-					try {
-						const peerIds: string[] = JSON.parse(savedPeers);
-						peerIds.forEach((remoteId) => {
-							if (remoteId !== id && !connections.has(remoteId)) {
-								const conn = peer!.connect(remoteId, { reliable: true });
-								setupDataConnection(conn);
+					const attempted = connectToStoredPeers(peer);
 
-								// TODO if re-connecting, we don't get the history
+					if (attempted > 0) {
+						clearReconnectTimer();
+						retryTimer = setTimeout(() => {
+							if (connections.size > 0) return;
+							// No stored peers connected — retry or give up
+							peer.destroy();
+							futurePeer = null;
+							if (useStoredId) {
+								tryOpen(false);
+							} else {
+								destroyPeer();
+								setPeerId(null);
+								onRejoinFailedRef?.();
 							}
-						});
-					} catch {
-						/* corrupted data — ignore */
+						}, RECONNECT_DELAY_MS);
 					}
-				}
-			});
+				});
 
-			peer.on("connection", (conn) => {
-				setupDataConnection(conn);
-			});
+				peer.on("connection", (conn) => {
+					setupDataConnection(conn);
+				});
 
-			peer.on("error", (err) => {
-				console.warn("PeerJS error:", err.message);
-			});
+				peer.on("error", (err) => {
+					console.warn("PeerJS error:", err.message);
+					if (!opened && useStoredId && storedId) {
+						peer.destroy();
+						futurePeer = null;
+						tryOpen(false);
+					}
+				});
 
-			peer.on("disconnected", () => {
-				if (!peer?.destroyed) {
-					peer?.reconnect();
-				}
+				peer.on("disconnected", () => {
+					if (!peer.destroyed) {
+						peer.reconnect();
+					}
+				});
 			});
-		});
+		};
+
+		tryOpen(true);
 	}, []);
 
 	useEffect(initPeer, [initPeer]);
@@ -162,9 +219,8 @@ export function usePeer({ partyId, onMessage, onConnect }: UsePeerProps) {
 		if (!futurePeer) return;
 		if (connections.has(remotePeerId)) return;
 		futurePeer.then((peer) => {
-			const conn = peer.connect(remotePeerId, {
-				reliable: true,
-			});
+			if (connections.has(remotePeerId)) return;
+			const conn = peer.connect(remotePeerId, { reliable: true });
 			setupDataConnection(conn);
 		});
 	}, []);
@@ -177,17 +233,9 @@ export function usePeer({ partyId, onMessage, onConnect }: UsePeerProps) {
 	}, []);
 
 	const disconnectAll = useCallback(() => {
-		connections.forEach((conn) => conn.close());
-		connections.clear();
-		sessionStorage.removeItem(STORAGE_PEERS);
-		sessionStorage.removeItem(STORAGE_PEER_ID);
-		if (futurePeer) {
-			futurePeer.then((peer) => peer.destroy());
-		}
-		futurePeer = null;
-		initPeer();
+		destroyPeer();
 		setPeerId(null);
-		notifyConnectedPeersChange();
+		initPeer();
 	}, [initPeer]);
 
 	const send = useCallback((remotePeerId: string, message: WireMessage) => {

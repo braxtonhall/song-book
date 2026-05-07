@@ -112,6 +112,13 @@ function App() {
 		onConnect: (remotePeerId) => {
 			send(remotePeerId, { type: "CRDT_SYNC_REQUEST", partyId: String(partyId), state: getStateVector() });
 		},
+		onRejoinFailed: () => {
+			leaveParty();
+			setPartyId(null);
+			setJoiningStep("idle");
+			setJoinError("Could not connect to party network");
+			sessionStorage.removeItem("song-book:party-id");
+		},
 	});
 
 	const gossip = useGossip(send, connect, getPeerIds, peerId, partyId);
