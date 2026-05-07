@@ -95,7 +95,7 @@ export type IndexEntry = {
 
 export type DifficultyHeaderItem = { _type: "difficulty-header"; difficulty: number };
 
-export type ItemEntryRow = { _type: "item"; entry: Entry };
+export type ItemEntryRow = { _type: "item"; entry: Entry; flatIndex: number };
 
 export type AugmentedItem = DifficultyHeaderItem | ItemEntryRow;
 

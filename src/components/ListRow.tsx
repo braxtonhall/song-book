@@ -97,11 +97,12 @@ export function ListRow({
 			return <DifficultyRow value={item.difficulty} style={style} />;
 		}
 		const entry = item.entry;
+		const flatIndex = item.flatIndex;
 		const isSelected = panelOpen && entry.id === selectedId;
 		return (
 			<EntryRow
 				ariaAttributes={ariaAttributes}
-				index={index - headerOffset}
+				index={flatIndex}
 				style={style}
 				entries={entries}
 				onSelect={onSelect}
@@ -113,7 +114,7 @@ export function ListRow({
 				showDismissButton={showDismissButton}
 				onDismiss={onDismiss}
 				onDismissSwipe={onDismissSwipe}
-				isDragging={dragIndex === index - headerOffset}
+				isDragging={dragIndex === flatIndex}
 				swipeIcon={swipeIcon}
 				swipeBgColor={swipeBgColor}
 				subtitles={subtitles}

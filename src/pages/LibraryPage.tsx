@@ -134,13 +134,14 @@ export function LibraryPage({
 		const diffField = DIFFICULTY_FIELD[difficultyKey];
 		const result: AugmentedItem[] = [];
 		let prevDiff = -1;
+		let flatIndex = 0;
 		for (const entry of searchResults) {
 			const diff = entry[diffField] as number;
 			if (diff !== prevDiff) {
 				prevDiff = diff;
 				result.push({ _type: "difficulty-header", difficulty: prevDiff });
 			}
-			result.push({ _type: "item", entry });
+			result.push({ _type: "item", entry, flatIndex: flatIndex++ });
 		}
 		return result;
 	}, [searchResults, sortBy, debouncedQuery, difficultyKey]);
