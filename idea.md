@@ -6,7 +6,6 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - Filter on more of the C3 comments
 - When you sort by difficulty, we need to add the headers. The alpha row will need some thinking
 - Sorting by difficulty, the difficulties are grouped in the menu
-- clicking on the instument defaults to [0, 8] -> [1, 8]
 - Decades filter
 - actual favicon and unfurling metadata
 - Lyrics
@@ -21,7 +20,6 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 # Fixes
 
 - In the filters header I can't see the [* * * * *] tooltip
-- Dragging the thumb over the other thumb makes the tooltip incorrect
 - Difficulty sliders don't fit on v small screen
 - Difficulty is pretty much unusable on small screen
 - Gossip protocol should know about parties. Only gossip the current party.

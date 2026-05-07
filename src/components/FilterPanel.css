@@ -215,6 +215,7 @@
 	opacity: 0.5;
 	flex-shrink: 0;
 	transition: opacity 0.12s;
+	cursor: pointer;
 }
 
 .instrument-row--active .instrument-row__icon {
@@ -227,6 +228,7 @@
 	white-space: nowrap;
 	min-width: 72px;
 	transition: color 0.12s;
+	cursor: pointer;
 }
 
 .instrument-row--active .instrument-row__name {

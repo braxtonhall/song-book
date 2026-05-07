@@ -75,7 +75,11 @@ function DualRangeSlider({
 		}
 	};
 
-	const popupDifficulty = drag ? (drag.which === "lo" ? Math.round(drag.value) : Math.round(drag.value) - 1) : null;
+	const popupDifficulty = drag
+		? drag.which === "lo"
+			? Math.max(0, Math.min(Math.round(drag.value), parentHi - 1))
+			: Math.max(Math.round(parentLo), Math.round(drag.value) - 1)
+		: null;
 
 	return (
 		<div className="dual-range">
@@ -153,14 +157,26 @@ function InstrumentRow({
 	const [lo, hi] = value;
 	const isFiltered = lo !== 0 || hi !== MAX_DIFFICULTY;
 
+	const toggleDifficulty = () => {
+		if (isFiltered) {
+			onChange([0, MAX_DIFFICULTY]);
+		} else {
+			onChange([1, MAX_DIFFICULTY]);
+		}
+	};
+
 	return (
 		<div className={`instrument-row${isFiltered ? " instrument-row--active" : ""}`}>
 			<img
 				className="instrument-row__icon"
 				src={`${process.env.PUBLIC_URL}/icons/${instrument.icon}`}
 				alt={instrument.label}
+				onPointerDown={(e) => e.stopPropagation()}
+				onClick={toggleDifficulty}
 			/>
-			<span className="instrument-row__name">{instrument.label}</span>
+			<span className="instrument-row__name" onPointerDown={(e) => e.stopPropagation()} onClick={toggleDifficulty}>
+				{instrument.label}
+			</span>
 			<DualRangeSlider value={value} onChange={onChange} />
 		</div>
 	);
