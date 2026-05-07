@@ -98,3 +98,27 @@ export type DifficultyHeaderItem = { _type: "difficulty-header"; difficulty: num
 export type ItemEntryRow = { _type: "item"; entry: Entry };
 
 export type AugmentedItem = DifficultyHeaderItem | ItemEntryRow;
+
+export const DIFFICULTY_FIELD: Record<InstrumentKey, keyof Entry> = {
+	guitar: "guitarDifficulty",
+	bass: "bassDifficulty",
+	drums: "drumDifficulty",
+	keys: "keysDifficulty",
+	vocals: "vocalsDifficulty",
+	proGuitar: "proGuitarDifficulty",
+	proBass: "proBassDifficulty",
+	proKeys: "proKeysDifficulty",
+	band: "bandDifficulty",
+};
+
+export const INSTRUMENT_LABELS: Record<InstrumentKey, string> = {
+	guitar: "Guitar",
+	bass: "Bass",
+	drums: "Drums",
+	keys: "Keys",
+	vocals: "Vocals",
+	proGuitar: "Pro Guitar",
+	proBass: "Pro Bass",
+	proKeys: "Pro Keys",
+	band: "Band",
+};

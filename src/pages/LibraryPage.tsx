@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { List, ListImperativeAPI, useListRef } from "react-window";
 import Fuse from "fuse.js";
-import { Entry, FilterState, IndexEntry, AugmentedItem } from "../types";
+import { Entry, FilterState, IndexEntry, AugmentedItem, InstrumentKey, DIFFICULTY_FIELD } from "../types";
 import { filter } from "../utilities/filter";
 import { SearchBar } from "../components/SearchBar";
 import { AlphaIndex } from "../components/AlphaIndex";
@@ -16,6 +16,7 @@ import "./LibraryPage.css";
 
 const SORT_HEADER_HEIGHT = 44;
 const SORT_STORAGE_KEY = "song-book:library-sort";
+const DIFFICULTY_KEY_STORAGE = "song-book:library-difficulty-key";
 
 function getStoredSort(): SortBy {
 	try {
@@ -23,6 +24,25 @@ function getStoredSort(): SortBy {
 		if (stored === "artist" || stored === "song" || stored === "difficulty") return stored;
 	} catch {}
 	return "song";
+}
+
+function getStoredDifficultyKey(): InstrumentKey {
+	try {
+		const stored = localStorage.getItem(DIFFICULTY_KEY_STORAGE);
+		const allowed: InstrumentKey[] = [
+			"band",
+			"guitar",
+			"bass",
+			"drums",
+			"keys",
+			"vocals",
+			"proGuitar",
+			"proBass",
+			"proKeys",
+		];
+		if (stored && (allowed as string[]).includes(stored)) return stored as InstrumentKey;
+	} catch {}
+	return "band";
 }
 
 const FUSE_OPTIONS = {
@@ -60,6 +80,7 @@ export function LibraryPage({
 	const [query, setQuery] = useState("");
 	const debouncedQuery = useDebounce(query, 200);
 	const [sortBy, setSortBy] = useState<SortBy>(getStoredSort);
+	const [difficultyKey, setDifficultyKey] = useState<InstrumentKey>(getStoredDifficultyKey);
 	const [alphaVisible, setAlphaVisible] = useState(false);
 	const [visibleRange, setVisibleRange] = useState<{ start: number; end: number } | null>(null);
 	const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -90,7 +111,16 @@ export function LibraryPage({
 		} catch {}
 	}, [sortBy]);
 
-	const sortedEntries = useMemo(() => [...filteredEntries].sort(sort(sortBy)), [filteredEntries, sortBy]);
+	useEffect(() => {
+		try {
+			localStorage.setItem(DIFFICULTY_KEY_STORAGE, difficultyKey);
+		} catch {}
+	}, [difficultyKey]);
+
+	const sortedEntries = useMemo(
+		() => [...filteredEntries].sort(sort(sortBy, difficultyKey)),
+		[filteredEntries, sortBy, difficultyKey],
+	);
 
 	const searchResults = useMemo(() => {
 		if (!debouncedQuery) return sortedEntries;
@@ -101,17 +131,19 @@ export function LibraryPage({
 
 	const augmentedItems = useMemo<AugmentedItem[] | null>(() => {
 		if (sortBy !== "difficulty" || debouncedQuery) return null;
+		const diffField = DIFFICULTY_FIELD[difficultyKey];
 		const result: AugmentedItem[] = [];
 		let prevDiff = -1;
 		for (const entry of searchResults) {
-			if (entry.bandDifficulty !== prevDiff) {
-				prevDiff = entry.bandDifficulty;
+			const diff = entry[diffField] as number;
+			if (diff !== prevDiff) {
+				prevDiff = diff;
 				result.push({ _type: "difficulty-header", difficulty: prevDiff });
 			}
 			result.push({ _type: "item", entry });
 		}
 		return result;
-	}, [searchResults, sortBy, debouncedQuery]);
+	}, [searchResults, sortBy, debouncedQuery, difficultyKey]);
 
 	const effectiveLength = augmentedItems ? augmentedItems.length : searchResults.length;
 	const rowCount = effectiveLength + headerOffset;
@@ -223,6 +255,8 @@ export function LibraryPage({
 						filteredCount: filteredEntries.length,
 						totalCount: entries.length,
 						augmentedItems,
+						difficultyKey,
+						onDifficultyKeyChange: setDifficultyKey,
 					}}
 					onRowsRendered={handleRowsRendered}
 					style={{ height: "100%", width: "100%" }}

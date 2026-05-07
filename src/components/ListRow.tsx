@@ -1,5 +1,5 @@
 import { RowComponentProps } from "react-window";
-import { Entry, AugmentedItem } from "../types";
+import { Entry, AugmentedItem, InstrumentKey } from "../types";
 import { EntryRow } from "./EntryRow";
 import { SortHeader, SortBy } from "./SortHeader";
 import { DifficultyRow } from "./DifficultyRow";
@@ -28,6 +28,8 @@ export type ListRowProps = {
 	filteredCount?: number;
 	totalCount?: number;
 	augmentedItems?: AugmentedItem[] | null;
+	difficultyKey?: InstrumentKey;
+	onDifficultyKeyChange?: (k: InstrumentKey) => void;
 };
 
 export function ListRow({
@@ -57,6 +59,8 @@ export function ListRow({
 	filteredCount,
 	totalCount,
 	augmentedItems,
+	difficultyKey,
+	onDifficultyKeyChange,
 }: RowComponentProps<ListRowProps>) {
 	if (headerOffset === 1 && index === 0 && sortBy && onSortChange) {
 		return (
@@ -66,6 +70,8 @@ export function ListRow({
 				onSortChange={onSortChange}
 				filteredCount={filteredCount ?? 0}
 				totalCount={totalCount ?? 0}
+				difficultyKey={difficultyKey}
+				onDifficultyKeyChange={onDifficultyKeyChange}
 			/>
 		);
 	}

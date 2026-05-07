@@ -87,3 +87,32 @@
 .sort-button:hover .sort-label {
 	border-color: rgba(255, 255, 255, 0.5);
 }
+
+.sort-header-sep {
+	color: rgba(255, 255, 255, 0.25);
+	font-size: 14px;
+	flex-shrink: 0;
+}
+
+.sort-inst-button {
+	display: inline-flex;
+	align-items: center;
+	background: none;
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	border-radius: 6px;
+	color: rgba(255, 255, 255, 0.5);
+	font-size: 13px;
+	font-family: inherit;
+	cursor: pointer;
+	padding: 2px 8px;
+	transition:
+		background 0.12s,
+		color 0.12s,
+		border-color 0.12s;
+}
+
+.sort-inst-button:hover {
+	background: rgba(255, 255, 255, 0.06);
+	color: rgba(255, 255, 255, 0.75);
+	border-color: rgba(255, 255, 255, 0.3);
+}

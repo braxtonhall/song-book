@@ -1,7 +1,7 @@
-import { Entry } from "../types";
+import { Entry, InstrumentKey, DIFFICULTY_FIELD } from "../types";
 import { SortBy } from "../components/SortHeader";
 
-export const sort = (type: SortBy) => {
+export const sort = (type: SortBy, difficultyKey?: InstrumentKey) => {
 	switch (type) {
 		case "song":
 			return (a: Entry, b: Entry) => a.sortSong.localeCompare(b.sortSong) || a.sortArtist.localeCompare(b.sortArtist);
@@ -11,11 +11,13 @@ export const sort = (type: SortBy) => {
 				a.year - b.year ||
 				(a.sortAlbumName || "").localeCompare(b.sortAlbumName || "") ||
 				a.albumTrackIndex - b.albumTrackIndex;
-		case "difficulty":
+		case "difficulty": {
+			const field = DIFFICULTY_FIELD[difficultyKey ?? "band"];
 			return (a: Entry, b: Entry) =>
-				a.bandDifficulty - b.bandDifficulty ||
+				(a[field] as number) - (b[field] as number) ||
 				a.sortSong.localeCompare(b.sortSong) ||
 				a.sortArtist.localeCompare(b.sortArtist);
+		}
 		default:
 			return type satisfies never;
 	}
