@@ -54,10 +54,11 @@ const normalize = (str: string) => str.replace(articles, "").trim();
 export const getEntries = async (): Promise<Entry[]> => {
 	const response = await fetch("https://braxtonhall.ca/song-book-resources/songs.json");
 	const result: any[] = await response.json();
-	return result.map(({ songPackage, c3Comments, albumArt, ogg }, index): Entry => {
+	return result.map(({ songPackage, c3Comments, o, l, a, k }, index): Entry => {
 		const vocalsDifficulty = vocalsDiff(songPackage.rank.vocals);
 		return {
-			albumArt,
+			albumArt: a,
+			lyrics: l && k,
 			song: songPackage.name,
 			sortSong: normalize(songPackage.name),
 			artist: songPackage.artist,
@@ -96,7 +97,7 @@ export const getEntries = async (): Promise<Entry[]> => {
 			master: songPackage.master,
 			rating: songPackage.rating,
 			duration: songPackage.songLength,
-			ogg,
+			ogg: o && k,
 			"2xBass": c3Comments["2xBass"] ?? songPackage.name.endsWith("(2x Bass Pedal)"),
 		};
 	});

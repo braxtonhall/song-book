@@ -50,7 +50,7 @@ export function isFilterActive(state: FilterState): boolean {
 }
 
 export type Entry = {
-	albumArt: string | string;
+	albumArt: string;
 	song: string;
 	sortSong: string;
 	artist: string;
@@ -79,5 +79,6 @@ export type Entry = {
 	duration: number;
 	author: string;
 	ogg: string;
+	lyrics: string;
 	"2xBass": boolean;
 };
