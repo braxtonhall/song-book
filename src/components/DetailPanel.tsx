@@ -24,11 +24,17 @@ function formatDuration(ms: number): string {
 	return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-function DifficultyDots({ value }: { value: number }) {
-	if (!value) return <span className="detail-panel__diff-none">No Part</span>;
+export function DifficultyDots({ value, compact }: { value: number; compact?: boolean }) {
+	if (!value)
+		return (
+			<span className={`detail-panel__diff-none${compact ? " detail-panel__diff-none--compact" : ""}`}>No Part</span>
+		);
 	const diffDotFillClass = value === 7 ? " detail-panel__diff-dot--red" : " detail-panel__diff-dot--filled";
 	return (
-		<span className="detail-panel__diff-dots" aria-label={`Difficulty of ${DIFFICULTY_LABELS[value]}`}>
+		<span
+			className={`detail-panel__diff-dots${compact ? " detail-panel__diff-dots--compact" : ""}`}
+			aria-label={`Difficulty of ${DIFFICULTY_LABELS[value]}`}
+		>
 			{Array.from({ length: 5 }).map((_, i) => (
 				<span key={i} className={`detail-panel__diff-dot${i < value - 1 ? diffDotFillClass : ""}`} />
 			))}

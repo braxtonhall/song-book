@@ -2,14 +2,15 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import "./SortHeader.css";
 
-export type SortBy = "song" | "artist";
+export type SortBy = "song" | "artist" | "difficulty";
 
 const SORT_LABELS: Record<SortBy, string> = {
 	song: "Song Title",
 	artist: "Artist Name",
+	difficulty: "Difficulty",
 };
 
-const SORT_OPTIONS: SortBy[] = ["song", "artist"];
+const SORT_OPTIONS: SortBy[] = ["song", "artist", "difficulty"];
 
 function pluralize(n: number) {
 	return n === 1 ? "song" : "songs";

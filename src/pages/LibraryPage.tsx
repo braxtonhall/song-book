@@ -1,17 +1,18 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { List, ListImperativeAPI, useListRef } from "react-window";
 import Fuse from "fuse.js";
-import { Entry, FilterState } from "../types";
+import { Entry, FilterState, IndexEntry, AugmentedItem } from "../types";
 import { filter } from "../utilities/filter";
 import { SearchBar } from "../components/SearchBar";
 import { AlphaIndex } from "../components/AlphaIndex";
 import { ListRow } from "../components/ListRow";
+import { DifficultyDots } from "../components/DetailPanel";
 import { SortBy } from "../components/SortHeader";
 import { useRowHeight } from "../hooks/useRowHeight";
 import { useDebounce } from "../hooks/useDebounce";
+import { sort } from "../utilities/sort";
 import "./Page.css";
 import "./LibraryPage.css";
-import { sort } from "../utilities/sort";
 
 const SORT_HEADER_HEIGHT = 44;
 const SORT_STORAGE_KEY = "song-book:library-sort";
@@ -19,7 +20,7 @@ const SORT_STORAGE_KEY = "song-book:library-sort";
 function getStoredSort(): SortBy {
 	try {
 		const stored = localStorage.getItem(SORT_STORAGE_KEY);
-		if (stored === "artist" || stored === "song") return stored;
+		if (stored === "artist" || stored === "song" || stored === "difficulty") return stored;
 	} catch {}
 	return "song";
 }
@@ -60,7 +61,7 @@ export function LibraryPage({
 	const debouncedQuery = useDebounce(query, 200);
 	const [sortBy, setSortBy] = useState<SortBy>(getStoredSort);
 	const [alphaVisible, setAlphaVisible] = useState(false);
-	const [visibleStart, setVisibleStart] = useState(0);
+	const [visibleRange, setVisibleRange] = useState<{ start: number; end: number } | null>(null);
 	const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
 	const filteredEntries = useMemo(() => {
@@ -78,7 +79,7 @@ export function LibraryPage({
 		setAlphaVisible(true);
 		clearTimeout(hideTimer.current);
 		hideTimer.current = setTimeout(() => setAlphaVisible(false), 1500);
-		setVisibleStart(visible.startIndex);
+		setVisibleRange({ start: visible.startIndex, end: visible.stopIndex });
 	}, []);
 
 	useEffect(() => () => clearTimeout(hideTimer.current), []);
@@ -98,6 +99,23 @@ export function LibraryPage({
 
 	const headerOffset = debouncedQuery ? 0 : 1;
 
+	const augmentedItems = useMemo<AugmentedItem[] | null>(() => {
+		if (sortBy !== "difficulty" || debouncedQuery) return null;
+		const result: AugmentedItem[] = [];
+		let prevDiff = -1;
+		for (const entry of searchResults) {
+			if (entry.bandDifficulty !== prevDiff) {
+				prevDiff = entry.bandDifficulty;
+				result.push({ _type: "difficulty-header", difficulty: prevDiff });
+			}
+			result.push({ _type: "item", entry });
+		}
+		return result;
+	}, [searchResults, sortBy, debouncedQuery]);
+
+	const effectiveLength = augmentedItems ? augmentedItems.length : searchResults.length;
+	const rowCount = effectiveLength + headerOffset;
+
 	const handleSwipeChange = useCallback(
 		(active: boolean) => {
 			const el = listRef.current?.element;
@@ -107,25 +125,65 @@ export function LibraryPage({
 		[listRef],
 	);
 
-	const letterFirstIndex = useMemo(() => {
-		const map: Record<string, number> = {};
+	const indexEntries = useMemo<IndexEntry[]>(() => {
+		if (augmentedItems) {
+			const diffMap: Record<number, number> = {};
+			for (let i = 0; i < augmentedItems.length; i++) {
+				const item: AugmentedItem = augmentedItems[i];
+				if (item._type === "difficulty-header" && !(item.difficulty in diffMap)) {
+					diffMap[item.difficulty] = i + headerOffset;
+				}
+			}
+			const ALL_DIFFICULTIES = [0, 1, 2, 3, 4, 5, 6, 7];
+			return ALL_DIFFICULTIES.map((d) => {
+				const index = diffMap[d];
+				return {
+					bubble: <DifficultyDots value={d} compact />,
+					label: String(d),
+					index: index ?? -1,
+					present: index !== undefined,
+				};
+			});
+		}
+		const letterMap: Record<string, number> = {};
 		searchResults.forEach((e, i) => {
-			const letter = (sortBy === "artist" ? e.sortArtist : e.sortSong)[0]?.toUpperCase();
-			if (letter && !(letter in map)) map[letter] = i + headerOffset;
+			const raw = (sortBy === "artist" ? e.sortArtist : e.sortSong)[0]?.toUpperCase() ?? "";
+			const letter = /^[A-Z]$/.test(raw) ? raw : "/";
+			if (letter && !(letter in letterMap)) letterMap[letter] = i + headerOffset;
 		});
-		return map;
-	}, [searchResults, headerOffset, sortBy]);
+		const ALL_LETTERS = ["/", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
+		return ALL_LETTERS.map((letter) => {
+			const index = letterMap[letter];
+			return {
+				bubble: <div>{letter}</div>,
+				label: letter,
+				index: index ?? -1,
+				present: index !== undefined,
+			};
+		});
+	}, [augmentedItems, searchResults, headerOffset, sortBy]);
+
+	const currentLabels = useMemo(() => {
+		if (!visibleRange || indexEntries.length === 0) return new Set<string>();
+		const { start, end } = visibleRange;
+		const sorted = [...indexEntries].sort((a, b) => a.index - b.index);
+		const labels = new Set<string>();
+		for (let i = 0; i < sorted.length; i++) {
+			const entry = sorted[i];
+			const nextIndex = i + 1 < sorted.length ? sorted[i + 1].index : rowCount;
+			const sectionEnd = nextIndex - 1;
+			if (entry.index <= end && sectionEnd >= start) {
+				labels.add(entry.label);
+			}
+		}
+		return labels;
+	}, [visibleRange, indexEntries, rowCount]);
 
 	useEffect(() => {
 		if (searchResults.length > 0) {
 			listRef.current?.scrollToRow({ index: 0, behavior: "instant" });
 		}
 	}, [debouncedQuery, listRef, searchResults]);
-
-	const visibleEntry = searchResults[visibleStart - headerOffset];
-	const currentLetter = visibleEntry
-		? ((sortBy === "artist" ? visibleEntry.sortArtist : visibleEntry.sortSong)[0]?.toUpperCase() ?? null)
-		: null;
 
 	return (
 		<div className="page page--library">
@@ -150,7 +208,7 @@ export function LibraryPage({
 					listRef={listRef}
 					className={undefined}
 					rowComponent={ListRow}
-					rowCount={searchResults.length + headerOffset}
+					rowCount={rowCount}
 					rowHeight={rowHeight}
 					rowProps={{
 						entries: searchResults,
@@ -164,6 +222,7 @@ export function LibraryPage({
 						onSwipeChange: handleSwipeChange,
 						filteredCount: filteredEntries.length,
 						totalCount: entries.length,
+						augmentedItems,
 					}}
 					onRowsRendered={handleRowsRendered}
 					style={{ height: "100%", width: "100%" }}
@@ -172,9 +231,9 @@ export function LibraryPage({
 			{!query && (
 				<AlphaIndex
 					listRef={listRef as React.RefObject<ListImperativeAPI>}
-					letterFirstIndex={letterFirstIndex}
+					indexEntries={indexEntries}
 					scrollVisible={alphaVisible}
-					currentLetter={currentLetter}
+					currentLabels={currentLabels}
 				/>
 			)}
 		</div>

@@ -85,3 +85,16 @@ export type Entry = {
 	lyrics: string;
 	"2xBass": boolean;
 };
+
+export type IndexEntry = {
+	bubble: React.ReactNode;
+	label: string;
+	index: number;
+	present?: boolean;
+};
+
+export type DifficultyHeaderItem = { _type: "difficulty-header"; difficulty: number };
+
+export type ItemEntryRow = { _type: "item"; entry: Entry };
+
+export type AugmentedItem = DifficultyHeaderItem | ItemEntryRow;

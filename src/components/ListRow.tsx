@@ -1,7 +1,8 @@
 import { RowComponentProps } from "react-window";
-import { Entry } from "../types";
+import { Entry, AugmentedItem } from "../types";
 import { EntryRow } from "./EntryRow";
 import { SortHeader, SortBy } from "./SortHeader";
+import { DifficultyRow } from "./DifficultyRow";
 
 export type ListRowProps = {
 	entries: Entry[];
@@ -26,6 +27,7 @@ export type ListRowProps = {
 	subtitles?: (string | null)[];
 	filteredCount?: number;
 	totalCount?: number;
+	augmentedItems?: AugmentedItem[] | null;
 };
 
 export function ListRow({
@@ -54,6 +56,7 @@ export function ListRow({
 	subtitles,
 	filteredCount,
 	totalCount,
+	augmentedItems,
 }: RowComponentProps<ListRowProps>) {
 	if (headerOffset === 1 && index === 0 && sortBy && onSortChange) {
 		return (
@@ -79,6 +82,36 @@ export function ListRow({
 					Clear History
 				</button>
 			</div>
+		);
+	}
+	if (augmentedItems) {
+		const item = augmentedItems[index - headerOffset];
+		if (!item) return null;
+		if (item._type === "difficulty-header") {
+			return <DifficultyRow value={item.difficulty} style={style} />;
+		}
+		const entry = item.entry;
+		const isSelected = panelOpen && entry.id === selectedId;
+		return (
+			<EntryRow
+				ariaAttributes={ariaAttributes}
+				index={index - headerOffset}
+				style={style}
+				entries={entries}
+				onSelect={onSelect}
+				isSelected={isSelected}
+				onAddToQueue={onAddToQueue}
+				onSwipeChange={onSwipeChange}
+				showDragHandle={showDragHandle}
+				onDragStart={onDragStart}
+				showDismissButton={showDismissButton}
+				onDismiss={onDismiss}
+				onDismissSwipe={onDismissSwipe}
+				isDragging={dragIndex === index - headerOffset}
+				swipeIcon={swipeIcon}
+				swipeBgColor={swipeBgColor}
+				subtitles={subtitles}
+			/>
 		);
 	}
 	const adjustedIndex = index - headerOffset;

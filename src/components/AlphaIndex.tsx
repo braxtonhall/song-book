@@ -2,44 +2,54 @@ import React, { useState, useRef, useCallback } from "react";
 import { ListImperativeAPI } from "react-window";
 import { useGlobalPointerCancel } from "../hooks/useGlobalPointerCancel";
 import { useLandscape } from "../hooks/useLandscape";
+import { IndexEntry } from "../types";
 import "./AlphaIndex.css";
 
-const LETTERS_ARRAY = "0ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+function findNearestPresent(entries: IndexEntry[], idx: number): IndexEntry | null {
+	for (let d = 0; d < entries.length; d++) {
+		const up = idx + d;
+		const down = idx - d;
+		if (up < entries.length && entries[up].present !== false) return entries[up];
+		if (down >= 0 && entries[down].present !== false) return entries[down];
+	}
+	return null;
+}
 
 export function AlphaIndex({
 	listRef,
-	letterFirstIndex,
+	indexEntries,
 	scrollVisible,
-	currentLetter,
+	currentLabels,
 }: {
 	listRef: React.RefObject<ListImperativeAPI>;
-	letterFirstIndex: Record<string, number>;
+	indexEntries: IndexEntry[];
 	scrollVisible: boolean;
-	currentLetter: string | null;
+	currentLabels: Set<string>;
 }) {
-	const [active, setActive] = useState<{ letter: string; y: number } | null>(null);
+	const [active, setActive] = useState<{ entry: IndexEntry; y: number } | null>(null);
 	const [hovered, setHovered] = useState(false);
 	const landscape = useLandscape();
 	const stripRef = useRef<HTMLDivElement>(null);
 	const isDragging = useRef(false);
 	const visible = landscape || scrollVisible || hovered || !!active;
+	const entries = indexEntries.length > 0 ? indexEntries : [];
 
-	const letterAtY = useCallback(
+	const entryAtY = useCallback(
 		(clientY: number) => {
 			const rect = stripRef.current?.getBoundingClientRect();
-			if (!rect) return;
+			if (!rect || entries.length === 0) return;
 			const PADDING = 8;
 			const contentH = rect.height - PADDING * 2;
 			const contentY = Math.max(0, Math.min(contentH, clientY - rect.top - PADDING));
-			const clampedIdx = Math.min(Math.floor((contentY / contentH) * LETTERS_ARRAY.length), LETTERS_ARRAY.length - 1);
-			const letter = LETTERS_ARRAY[clampedIdx];
-			const index = letterFirstIndex[letter];
-			if (index !== undefined) {
-				listRef.current?.scrollToRow({ index, align: "start", behavior: "instant" });
+			const clampedIdx = Math.min(Math.floor((contentY / contentH) * entries.length), entries.length - 1);
+			const entry = entries[clampedIdx];
+			const scrollEntry = entry.present === false ? findNearestPresent(entries, clampedIdx) : entry;
+			if (scrollEntry) {
+				listRef.current?.scrollToRow({ index: scrollEntry.index, align: "start", behavior: "instant" });
 			}
-			setActive({ letter, y: clientY });
+			setActive({ entry, y: clientY });
 		},
-		[listRef, letterFirstIndex],
+		[listRef, entries],
 	);
 
 	const handlePointerDown = useCallback(
@@ -47,17 +57,17 @@ export function AlphaIndex({
 			e.preventDefault();
 			stripRef.current?.setPointerCapture(e.pointerId);
 			isDragging.current = true;
-			letterAtY(e.clientY);
+			entryAtY(e.clientY);
 		},
-		[letterAtY],
+		[entryAtY],
 	);
 
 	const handlePointerMove = useCallback(
 		(e: React.PointerEvent<HTMLDivElement>) => {
 			if (!isDragging.current) return;
-			letterAtY(e.clientY);
+			entryAtY(e.clientY);
 		},
-		[letterAtY],
+		[entryAtY],
 	);
 
 	const handlePointerUp = useCallback(() => {
@@ -74,7 +84,7 @@ export function AlphaIndex({
 		<div className="alpha-wrapper">
 			{active && (
 				<div className="alpha-bubble" style={{ top: active.y, transform: "translateY(-50%)" }}>
-					{active.letter}
+					{active.entry.bubble}
 				</div>
 			)}
 			<div
@@ -87,12 +97,12 @@ export function AlphaIndex({
 				onPointerUp={handlePointerUp}
 				onPointerCancel={handlePointerUp}
 			>
-				{LETTERS_ARRAY.map((letter) => (
+				{entries.map((entry) => (
 					<span
-						key={letter}
-						className={`alpha-letter${active?.letter === letter ? " alpha-letter--active" : letter === currentLetter ? " alpha-letter--current" : ""}${!(letter in letterFirstIndex) ? " alpha-letter--missing" : ""}`}
+						key={entry.label}
+						className={`alpha-letter${active?.entry.label === entry.label ? " alpha-letter--active" : currentLabels.has(entry.label) ? " alpha-letter--current" : ""}${entry.present === false ? " alpha-letter--missing" : ""}`}
 					>
-						{letter}
+						{entry.label}
 					</span>
 				))}
 			</div>

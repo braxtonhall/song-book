@@ -183,6 +183,21 @@
 	text-align: center;
 }
 
+.detail-panel__diff-dots--compact {
+	gap: 2px;
+	flex: none;
+}
+
+.detail-panel__diff-dots--compact .detail-panel__diff-dot {
+	width: 5px;
+	height: 5px;
+}
+
+.detail-panel__diff-none--compact {
+	font-size: 7px;
+	flex: none;
+}
+
 .detail-panel__add-queue-btn {
 	width: 100%;
 	padding: 12px;
