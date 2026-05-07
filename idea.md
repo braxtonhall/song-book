@@ -8,7 +8,6 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - Sorting by difficulty, the difficulties are grouped in the menu
 - Decades filter
 - actual favicon and unfurling metadata
-- Lyrics
 
 # Changes
 
@@ -20,6 +19,7 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 # Fixes
 
 - In the filters header I can't see the [* * * * *] tooltip
+- Lyrics still have a lot of spaces in them
 - Difficulty sliders don't fit on v small screen
 - Difficulty is pretty much unusable on small screen
 - Gossip protocol should know about parties. Only gossip the current party.

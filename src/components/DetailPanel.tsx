@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Entry } from "../types";
 import { AudioPlayer } from "./AudioPlayer";
 import { Panel } from "./Panel";
@@ -66,6 +66,29 @@ export function DetailPanel({
 	onAddToQueue?: (entry: Entry) => void;
 }) {
 	const { password: songPassword } = useSongPassword();
+	const [lyrics, setLyrics] = useState<string | null>(null);
+
+	useEffect(() => {
+		setLyrics(null);
+		if (!entry || !entry.vocalParts || !entry.lyrics) {
+			return;
+		}
+		let cancelled = false;
+		fetch(`https://braxtonhall.ca/song-book-resources/lyrics/${entry.lyrics}.txt`)
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to load lyrics");
+				return res.text();
+			})
+			.then((text) => {
+				if (!cancelled) setLyrics(text.trim());
+			})
+			.catch(() => {
+				if (!cancelled) setLyrics(null);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [entry]);
 
 	return (
 		<Panel
@@ -149,6 +172,11 @@ export function DetailPanel({
 						>
 							Add to Queue
 						</button>
+					)}
+					{entry.vocalParts > 0 && entry.lyrics && lyrics && (
+						<div className="detail-panel__lyrics">
+							<pre className="detail-panel__lyrics-text">{lyrics}</pre>
+						</div>
 					)}
 				</>
 			)}

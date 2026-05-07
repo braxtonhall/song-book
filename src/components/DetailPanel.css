@@ -200,3 +200,46 @@
 .detail-panel__add-queue-btn:hover {
 	background: #e6a100;
 }
+
+.detail-panel__lyrics {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	margin-top: 8px;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+	animation: lyrics-fade-in 0.4s ease;
+}
+
+@keyframes lyrics-fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.detail-panel__lyrics::-webkit-scrollbar {
+	width: 6px;
+}
+
+.detail-panel__lyrics::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.detail-panel__lyrics::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 3px;
+}
+
+.detail-panel__lyrics-text {
+	margin: 0;
+	padding: 4px 0;
+	color: rgba(255, 255, 255, 0.6);
+	font-size: 14px;
+	font-family: inherit;
+	line-height: 1.6;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
