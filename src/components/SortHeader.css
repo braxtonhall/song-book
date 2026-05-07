@@ -33,7 +33,14 @@
 	width: 16px;
 	height: 16px;
 	flex-shrink: 0;
-	color: inherit;
+	color: rgba(255, 255, 255, 0.4);
+	margin-right: 4px;
+}
+
+.sort-count {
+	color: rgba(255, 255, 255, 0.4);
+	font-size: 13px;
+	letter-spacing: 0.01em;
 }
 
 .sort-menu {
@@ -99,6 +106,7 @@
 	align-items: center;
 	background: none;
 	border: 1px solid rgba(255, 255, 255, 0.15);
+	margin: 0 4px;
 	border-radius: 6px;
 	color: rgba(255, 255, 255, 0.5);
 	font-size: 13px;

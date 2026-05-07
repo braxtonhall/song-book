@@ -101,14 +101,14 @@ export function SortHeader({
 
 	return (
 		<div ref={containerRef} className="sort-header" style={style}>
-			<button className="sort-button" onClick={handleButtonClick}>
-				<svg className="sort-icon" viewBox="0 0 20 20" fill="none">
-					<path d="M3 5h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-					<path d="M3 10h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-					<path d="M3 15h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-				</svg>
-				{countText}
-				<span className="sort-label">{SORT_LABELS[sortBy]}</span>
+			<svg className="sort-icon" viewBox="0 0 20 20" fill="none">
+				<path d="M3 5h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+				<path d="M3 10h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+				<path d="M3 15h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+			</svg>
+			<span className="sort-count">{countText}</span>
+			<button className="sort-inst-button" onClick={handleButtonClick}>
+				{SORT_LABELS[sortBy]}
 			</button>
 			{sortBy === "difficulty" && onDifficultyKeyChange && (
 				<>
