@@ -76,3 +76,14 @@
 	background: rgba(255, 179, 0, 0.08);
 	color: #ffb300;
 }
+
+.sort-label {
+	display: inline-block;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	border-radius: 6px;
+	padding: 2px 8px;
+}
+
+.sort-button:hover .sort-label {
+	border-color: rgba(255, 255, 255, 0.5);
+}

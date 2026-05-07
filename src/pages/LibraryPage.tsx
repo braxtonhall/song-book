@@ -162,6 +162,8 @@ export function LibraryPage({
 						panelOpen,
 						onAddToQueue,
 						onSwipeChange: handleSwipeChange,
+						filteredCount: filteredEntries.length,
+						totalCount: entries.length,
 					}}
 					onRowsRendered={handleRowsRendered}
 					style={{ height: "100%", width: "100%" }}

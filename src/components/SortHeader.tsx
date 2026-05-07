@@ -11,19 +11,32 @@ const SORT_LABELS: Record<SortBy, string> = {
 
 const SORT_OPTIONS: SortBy[] = ["song", "artist"];
 
+function pluralize(n: number) {
+	return n === 1 ? "song" : "songs";
+}
+
 export function SortHeader({
 	style,
 	sortBy,
 	onSortChange,
+	filteredCount,
+	totalCount,
 }: {
 	style: React.CSSProperties;
 	sortBy: SortBy;
 	onSortChange: (s: SortBy) => void;
+	filteredCount: number;
+	totalCount: number;
 }) {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const menuRef = useRef<HTMLDivElement>(null);
+
+	const countText =
+		filteredCount === totalCount
+			? `${filteredCount} ${pluralize(filteredCount)} sorted by `
+			: `${filteredCount} of ${totalCount} ${pluralize(totalCount)} sorted by `;
 
 	const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 		if (menuOpen) {
@@ -54,7 +67,8 @@ export function SortHeader({
 					<path d="M3 10h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
 					<path d="M3 15h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
 				</svg>
-				Sorted by {SORT_LABELS[sortBy]}
+				{countText}
+				<span className="sort-label">{SORT_LABELS[sortBy]}</span>
 			</button>
 			{menuOpen &&
 				menuPos &&

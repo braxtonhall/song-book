@@ -24,6 +24,8 @@ export type ListRowProps = {
 	showClearHeader?: boolean;
 	onClearHistory?: () => void;
 	subtitles?: (string | null)[];
+	filteredCount?: number;
+	totalCount?: number;
 };
 
 export function ListRow({
@@ -50,9 +52,19 @@ export function ListRow({
 	showClearHeader,
 	onClearHistory,
 	subtitles,
+	filteredCount,
+	totalCount,
 }: RowComponentProps<ListRowProps>) {
 	if (headerOffset === 1 && index === 0 && sortBy && onSortChange) {
-		return <SortHeader style={style} sortBy={sortBy} onSortChange={onSortChange} />;
+		return (
+			<SortHeader
+				style={style}
+				sortBy={sortBy}
+				onSortChange={onSortChange}
+				filteredCount={filteredCount ?? 0}
+				totalCount={totalCount ?? 0}
+			/>
+		);
 	}
 	if (headerOffset === 1 && index === 0 && showClearHeader && onClearHistory) {
 		return (
