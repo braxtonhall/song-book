@@ -203,7 +203,7 @@ function FilterChip({
 	);
 }
 
-type SectionId = "vocalParts" | "difficulty" | "genre" | "source" | "tags";
+type SectionId = "vocalParts" | "difficulty" | "genre" | "source" | "decades" | "tags";
 
 function FilterSection({
 	id,
@@ -287,6 +287,10 @@ export function FilterPanel({
 }) {
 	const genres = useMemo(() => [...new Set(entries.map((e) => e.genre))].sort(), [entries]);
 	const sources = useMemo(() => [...new Set(entries.map((e) => e.source))].sort(), [entries]);
+	const decades = useMemo(
+		() => [...new Set(entries.map((e) => Math.floor(e.year / 10) * 10).filter((d) => d >= 1950))].sort(),
+		[entries],
+	);
 
 	const active = isFilterActive(filterState);
 
@@ -449,6 +453,36 @@ export function FilterPanel({
 									}}
 								/>
 								<span className="checklist__text">{item}</span>
+							</label>
+						))}
+					</div>
+				</FilterSection>
+
+				<FilterSection
+					id="decades"
+					label="Decade"
+					hasActiveFilters={filterState.decades.length > 0}
+					onClear={() => onFilterChange((prev) => ({ ...prev, decades: [] }))}
+					open={openSection === "decades"}
+					onToggle={toggleSection}
+				>
+					<div className="checklist" onPointerDown={(e) => e.stopPropagation()}>
+						{decades.map((decade) => (
+							<label key={decade} className="checklist__item">
+								<input
+									type="checkbox"
+									className="checklist__checkbox"
+									checked={filterState.decades.includes(decade)}
+									onChange={() => {
+										onFilterChange((prev) => ({
+											...prev,
+											decades: prev.decades.includes(decade)
+												? prev.decades.filter((d) => d !== decade)
+												: [...prev.decades, decade],
+										}));
+									}}
+								/>
+								<span className="checklist__text">{decade}s</span>
 							</label>
 						))}
 					</div>

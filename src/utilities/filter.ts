@@ -1,6 +1,6 @@
 import { Entry, FilterState, InstrumentKey } from "../types";
 
-export const filter = ({ genres, sources, vocalParts, difficulty, tags }: FilterState) => {
+export const filter = ({ genres, sources, vocalParts, decades, difficulty, tags }: FilterState) => {
 	const tests: ((entry: Entry) => boolean)[] = [];
 	if (genres.length) {
 		tests.push((entry) => genres.includes(entry.genre));
@@ -10,6 +10,9 @@ export const filter = ({ genres, sources, vocalParts, difficulty, tags }: Filter
 	}
 	if (vocalParts.length) {
 		tests.push((entry) => vocalParts.includes(entry.vocalParts));
+	}
+	if (decades.length) {
+		tests.push((entry) => decades.includes(Math.floor(entry.year / 10) * 10));
 	}
 	for (const [key, state] of Object.entries(tags)) {
 		if (typeof state === "boolean") {

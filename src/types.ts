@@ -14,6 +14,7 @@ export type FilterState = {
 	sources: string[];
 	vocalParts: number[];
 	difficulty: Record<InstrumentKey, [number, number]>;
+	decades: number[];
 	tags: { [K in keyof Entry]?: boolean | null };
 };
 
@@ -34,6 +35,7 @@ export const DEFAULT_FILTER_STATE: FilterState = {
 	sources: [],
 	vocalParts: [],
 	difficulty: defaultDifficulty,
+	decades: [],
 	tags: {},
 };
 
@@ -42,6 +44,7 @@ export function isFilterActive(state: FilterState): boolean {
 		state.genres.length > 0 ||
 		state.sources.length > 0 ||
 		state.vocalParts.length > 0 ||
+		state.decades.length > 0 ||
 		(Object.keys(state.difficulty) as InstrumentKey[]).some(
 			(key) => state.difficulty[key][0] !== 0 || state.difficulty[key][1] !== 8,
 		) ||
