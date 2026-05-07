@@ -85,18 +85,19 @@ export function SortHeader({
 
 	useEffect(() => {
 		if (!menuOpen && !instMenuOpen) return;
-		const handler = (e: MouseEvent) => {
-			if (
-				!containerRef.current?.contains(e.target as Node) &&
-				!menuRef.current?.contains(e.target as Node) &&
-				!instMenuRef.current?.contains(e.target as Node)
-			) {
+		const handler = (e: MouseEvent | TouchEvent) => {
+			const target = e instanceof TouchEvent ? e.touches[0]?.target : e.target;
+			if (!menuRef.current?.contains(target as Node) && !instMenuRef.current?.contains(target as Node)) {
 				setMenuOpen(false);
 				setInstMenuOpen(false);
 			}
 		};
 		document.addEventListener("mousedown", handler);
-		return () => document.removeEventListener("mousedown", handler);
+		document.addEventListener("touchstart", handler);
+		return () => {
+			document.removeEventListener("mousedown", handler);
+			document.removeEventListener("touchstart", handler);
+		};
 	}, [menuOpen, instMenuOpen]);
 
 	return (
