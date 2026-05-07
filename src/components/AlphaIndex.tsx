@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import { ListImperativeAPI } from "react-window";
 import { useGlobalPointerCancel } from "../hooks/useGlobalPointerCancel";
 import { useLandscape } from "../hooks/useLandscape";
@@ -32,7 +32,7 @@ export function AlphaIndex({
 	const stripRef = useRef<HTMLDivElement>(null);
 	const isDragging = useRef(false);
 	const visible = landscape || scrollVisible || hovered || !!active;
-	const entries = indexEntries.length > 0 ? indexEntries : [];
+	const entries = useMemo(() => (indexEntries.length > 0 ? indexEntries : []), [indexEntries]);
 
 	const entryAtY = useCallback(
 		(clientY: number) => {
