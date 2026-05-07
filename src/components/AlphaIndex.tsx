@@ -83,8 +83,8 @@ export function AlphaIndex({
 	return (
 		<div className="alpha-wrapper">
 			{active && (
-				<div className="alpha-bubble" style={{ top: active.y, transform: "translateY(-50%)" }}>
-					{active.entry.bubble}
+				<div className="alpha-bubble" style={{ top: active.y, transform: "translateY(-50%) rotate(45deg)" }}>
+					<div className="alpha-bubble__content">{active.entry.bubble}</div>
 				</div>
 			)}
 			<div
