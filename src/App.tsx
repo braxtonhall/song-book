@@ -27,6 +27,31 @@ import "./pages/PartyPage.css";
 
 type PageId = "library" | "queue" | "history" | "party" | "settings";
 
+const FILTER_STATE_STORAGE_KEY = "song-book:filter-state";
+
+function getStoredFilterState(): FilterState {
+	try {
+		const stored = localStorage.getItem(FILTER_STATE_STORAGE_KEY);
+		if (!stored) return DEFAULT_FILTER_STATE;
+		const parsed = JSON.parse(stored);
+		if (
+			typeof parsed === "object" &&
+			parsed !== null &&
+			Array.isArray(parsed.genres) &&
+			Array.isArray(parsed.sources) &&
+			Array.isArray(parsed.vocalParts) &&
+			typeof parsed.difficulty === "object" &&
+			parsed.difficulty !== null &&
+			Array.isArray(parsed.decades) &&
+			typeof parsed.tags === "object" &&
+			parsed.tags !== null
+		) {
+			return parsed as FilterState;
+		}
+	} catch {}
+	return DEFAULT_FILTER_STATE;
+}
+
 function App() {
 	const landscape = useLandscape();
 	const [entries, setEntries] = useState<Entry[] | null>(null);
@@ -34,8 +59,14 @@ function App() {
 	const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
 	const [sheetDismissed, setSheetDismissed] = useState(true);
 	const [filterDismissed, setFilterDismissed] = useState(true);
-	const [filterState, setFilterState] = useState<FilterState>(DEFAULT_FILTER_STATE);
+	const [filterState, setFilterState] = useState<FilterState>(getStoredFilterState);
 	const filterActive = isFilterActive(filterState);
+
+	useEffect(() => {
+		try {
+			localStorage.setItem(FILTER_STATE_STORAGE_KEY, JSON.stringify(filterState));
+		} catch {}
+	}, [filterState]);
 	const {
 		queue,
 		addToQueue,
