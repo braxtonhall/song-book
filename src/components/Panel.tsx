@@ -7,12 +7,14 @@ export function Panel({
 	children,
 	dismissed,
 	onDismiss,
+	onRestore,
 	isLandscape,
 	accent,
 }: {
 	children: React.ReactNode;
 	dismissed: boolean;
 	onDismiss: () => void;
+	onRestore?: () => void;
 	isLandscape: boolean;
 	accent?: string;
 }) {
@@ -23,6 +25,10 @@ export function Panel({
 	const swipeVelocity = useRef(0);
 	const isDragging = useRef(false);
 	const [dragging, setDragging] = useState(false);
+	const dismissedRef = useRef(dismissed);
+	dismissedRef.current = dismissed;
+	const onRestoreRef = useRef(onRestore);
+	onRestoreRef.current = onRestore;
 
 	const MIN_TOP = 80;
 	const DISMISS_THRESHOLD = 0.85;
@@ -40,6 +46,7 @@ export function Panel({
 	useEffect(() => {
 		if (isLandscape) return;
 		if (!panelRef.current) return;
+		if (isDragging.current) return; // user caught the panel mid-animation — don't fight the drag
 		if (dismissed) {
 			const target = dismissedTop();
 			const vel = swipeVelocity.current;
@@ -104,6 +111,10 @@ export function Panel({
 			panelRef.current!.style.top = currentTop + "px";
 			panelRef.current!.style.transition = "none";
 			dragStartPanelY.current = currentTop;
+			// If the panel was mid-dismiss, cancel it so the dismissed effect won't re-animate
+			// away from where the user grabbed it. isDragging is already true above so the
+			// effect will no-op if it fires due to this state change.
+			if (dismissedRef.current) onRestoreRef.current?.();
 		},
 		[resetPoints, observePoint],
 	);

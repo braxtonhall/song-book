@@ -62,12 +62,14 @@ export function DetailPanel({
 	entry,
 	dismissed,
 	onDismiss,
+	onRestore,
 	isLandscape,
 	onAddToQueue,
 }: {
 	entry: Entry | null;
 	dismissed: boolean;
 	onDismiss: () => void;
+	onRestore?: () => void;
 	isLandscape: boolean;
 	onAddToQueue?: (entry: Entry) => void;
 }) {
@@ -100,6 +102,7 @@ export function DetailPanel({
 		<Panel
 			dismissed={dismissed}
 			onDismiss={onDismiss}
+			onRestore={onRestore}
 			isLandscape={isLandscape}
 			accent={entry ? darkenHex(entry.hex) : undefined}
 		>

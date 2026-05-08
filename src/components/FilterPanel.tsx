@@ -313,6 +313,7 @@ function FilterSection({
 export function FilterPanel({
 	dismissed,
 	onDismiss,
+	onRestore,
 	isLandscape,
 	entries,
 	filterState,
@@ -320,6 +321,7 @@ export function FilterPanel({
 }: {
 	dismissed: boolean;
 	onDismiss: () => void;
+	onRestore?: () => void;
 	isLandscape: boolean;
 	entries: Entry[];
 	filterState: FilterState;
@@ -380,7 +382,7 @@ export function FilterPanel({
 	}, []);
 
 	return (
-		<Panel dismissed={dismissed} onDismiss={onDismiss} isLandscape={isLandscape}>
+		<Panel dismissed={dismissed} onDismiss={onDismiss} onRestore={onRestore} isLandscape={isLandscape}>
 			<div className="filter-panel">
 				<div className="filter-panel__header">
 					<h2 className="filter-panel__title">Filters</h2>

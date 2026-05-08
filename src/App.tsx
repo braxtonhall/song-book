@@ -579,12 +579,14 @@ function App() {
 					entry={selectedEntry}
 					dismissed={sheetDismissed}
 					onDismiss={() => setSheetDismissed(true)}
+					onRestore={() => setSheetDismissed(false)}
 					isLandscape={landscape}
 					onAddToQueue={handleAddToQueue}
 				/>
 				<FilterPanel
 					dismissed={filterDismissed}
 					onDismiss={() => setFilterDismissed(true)}
+					onRestore={() => setFilterDismissed(false)}
 					isLandscape={landscape}
 					entries={entries}
 					filterState={filterState}
