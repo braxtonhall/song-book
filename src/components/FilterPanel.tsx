@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useCallback, Dispatch, SetStateAction } from "react";
+import { createPortal } from "react-dom";
 import { Entry, FilterState, DEFAULT_FILTER_STATE, InstrumentKey, isFilterActive } from "../types";
 import { Panel } from "./Panel";
 import "./FilterPanel.css";
@@ -117,70 +118,90 @@ function DualRangeSlider({
 			: Math.max(Math.round(parentLo), Math.round(drag.value) - 1)
 		: null;
 
+	const popupPortal = (() => {
+		if (!drag || popupDifficulty == null || !containerRef.current) return null;
+		const rect = containerRef.current.getBoundingClientRect();
+		const trackWidth = rect.width - 14;
+		const style: React.CSSProperties = {
+			position: "fixed",
+			left: rect.left + 7 + (drag.value / MAX_DIFFICULTY) * trackWidth,
+			bottom: window.innerHeight - rect.top + 7,
+			transform: "translateX(-50%)",
+			zIndex: 300,
+		};
+		return createPortal(
+			<div className="dual-range__popup" style={style}>
+				{popupDifficulty === 0 ? (
+					<span className="dual-range__popup-none">No Part</span>
+				) : (
+					<span className="dual-range__popup-dots">
+						{Array.from({ length: 5 }).map((_, i) => (
+							<span
+								key={i}
+								className={`dual-range__popup-dot${i < popupDifficulty - 1 ? (popupDifficulty === 7 ? " dual-range__popup-dot--red" : " dual-range__popup-dot--filled") : ""}`}
+							/>
+						))}
+					</span>
+				)}
+			</div>,
+			document.body,
+		);
+	})();
+
 	return (
-		<div
-			className="dual-range"
-			ref={containerRef}
-			onPointerDown={handlePointerDown}
-			onPointerMove={handlePointerMove}
-			onPointerUp={onUp}
-			onPointerCancel={onUp}
-		>
-			<div className="dual-range__track" aria-hidden />
+		<>
 			<div
-				className="dual-range__fill"
-				style={{
-					left: `calc(7px + (100% - 14px) * ${lo} / ${MAX_DIFFICULTY})`,
-					width: `calc((100% - 14px) * ${hi - lo} / ${MAX_DIFFICULTY})`,
-				}}
-			/>
-			<div className="dual-range__segments" aria-hidden>
-				{Array.from({ length: MAX_DIFFICULTY }, (_, i) => (
-					<div key={i} className="dual-range__segment" />
-				))}
-			</div>
-			{drag && popupDifficulty != null && (
+				className="dual-range"
+				ref={containerRef}
+				onPointerDown={handlePointerDown}
+				onPointerMove={handlePointerMove}
+				onPointerUp={onUp}
+				onPointerCancel={onUp}
+			>
+				<div className="dual-range__track" aria-hidden />
 				<div
-					className="dual-range__popup"
-					style={{ left: `calc(7px + (100% - 14px) * ${drag.value} / ${MAX_DIFFICULTY})` }}
-				>
-					{popupDifficulty === 0 ? (
-						<span className="dual-range__popup-none">No Part</span>
-					) : (
-						<span className="dual-range__popup-dots">
-							{Array.from({ length: 5 }).map((_, i) => (
-								<span
-									key={i}
-									className={`dual-range__popup-dot${i < popupDifficulty - 1 ? (popupDifficulty === 7 ? " dual-range__popup-dot--red" : " dual-range__popup-dot--filled") : ""}`}
-								/>
-							))}
-						</span>
-					)}
+					className="dual-range__fill"
+					style={{
+						left: `calc(7px + (100% - 14px) * ${lo} / ${MAX_DIFFICULTY})`,
+						width: `calc((100% - 14px) * ${hi - lo} / ${MAX_DIFFICULTY})`,
+					}}
+				/>
+				<div className="dual-range__segments" aria-hidden>
+					{Array.from({ length: MAX_DIFFICULTY }, (_, i) => (
+						<div key={i} className="dual-range__segment" />
+					))}
 				</div>
-			)}
-			<input
-				type="range"
-				className="dual-range__input dual-range__input--lo"
-				style={{ zIndex: drag?.which === "lo" ? 2 : undefined }}
-				min={0}
-				max={MAX_DIFFICULTY}
-				step="any"
-				value={lo}
-				onChange={handleChange("lo")}
-				onPointerDown={(e) => e.stopPropagation()}
-			/>
-			<input
-				type="range"
-				className="dual-range__input dual-range__input--hi"
-				style={{ zIndex: drag?.which === "hi" ? 2 : undefined }}
-				min={0}
-				max={MAX_DIFFICULTY}
-				step="any"
-				value={hi}
-				onChange={handleChange("hi")}
-				onPointerDown={(e) => e.stopPropagation()}
-			/>
-		</div>
+				<input
+					type="range"
+					className="dual-range__input dual-range__input--lo"
+					style={{ zIndex: drag?.which === "lo" ? 2 : undefined }}
+					min={0}
+					max={MAX_DIFFICULTY}
+					step="any"
+					value={lo}
+					onChange={handleChange("lo")}
+					onPointerDown={(e) => {
+						e.stopPropagation();
+						setDrag({ which: "lo", value: lo, fromTrack: false });
+					}}
+				/>
+				<input
+					type="range"
+					className="dual-range__input dual-range__input--hi"
+					style={{ zIndex: drag?.which === "hi" ? 2 : undefined }}
+					min={0}
+					max={MAX_DIFFICULTY}
+					step="any"
+					value={hi}
+					onChange={handleChange("hi")}
+					onPointerDown={(e) => {
+						e.stopPropagation();
+						setDrag({ which: "hi", value: hi, fromTrack: false });
+					}}
+				/>
+			</div>
+			{popupPortal}
+		</>
 	);
 }
 
@@ -206,16 +227,15 @@ function InstrumentRow({
 
 	return (
 		<div className={`instrument-row${isFiltered ? " instrument-row--active" : ""}`}>
-			<img
-				className="instrument-row__icon"
-				src={`${process.env.PUBLIC_URL}/icons/${instrument.icon}`}
-				alt={instrument.label}
+			<button
+				className="instrument-row__label"
 				onPointerDown={(e) => e.stopPropagation()}
 				onClick={toggleDifficulty}
-			/>
-			<span className="instrument-row__name" onPointerDown={(e) => e.stopPropagation()} onClick={toggleDifficulty}>
-				{instrument.label}
-			</span>
+				type="button"
+			>
+				<img className="instrument-row__icon" src={`${process.env.PUBLIC_URL}/icons/${instrument.icon}`} alt="" />
+				<span className="instrument-row__name">{instrument.label}</span>
+			</button>
 			<DualRangeSlider value={value} onChange={onChange} />
 		</div>
 	);

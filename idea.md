@@ -15,7 +15,6 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 
 # Fixes
 
-- In the filters header I can't see the [* * * * *] tooltip
 - Difficulty sliders don't fit on v small screen
 - Gossip protocol should know about parties. Only gossip the current party.
 - rb1 songs have no album art
