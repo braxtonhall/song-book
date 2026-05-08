@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, Dispatch, SetStateAction } from "react";
+import React, { useState, useRef, useMemo, useCallback, Dispatch, SetStateAction } from "react";
 import { Entry, FilterState, DEFAULT_FILTER_STATE, InstrumentKey, isFilterActive } from "../types";
 import { Panel } from "./Panel";
 import "./FilterPanel.css";
@@ -41,38 +41,74 @@ function DualRangeSlider({
 	onChange: (value: [number, number]) => void;
 }) {
 	const [parentLo, parentHi] = value;
-	const [drag, setDrag] = useState<{ which: "lo" | "hi"; value: number } | null>(null);
+	const [drag, setDrag] = useState<{ which: "lo" | "hi"; value: number; fromTrack: boolean } | null>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const dragRef = useRef(drag);
+	dragRef.current = drag;
 
 	const lo = drag?.which === "lo" ? drag.value : parentLo;
 	const hi = drag?.which === "hi" ? drag.value : parentHi;
 
-	const onDown = (which: "lo" | "hi") => (e: React.PointerEvent) => {
-		e.stopPropagation();
-		setDrag({ which, value: which === "lo" ? parentLo : parentHi });
-	};
+	const getValueAt = useCallback((clientX: number): number => {
+		const rect = containerRef.current!.getBoundingClientRect();
+		const trackWidth = rect.width - 14;
+		return (Math.max(0, Math.min(clientX - rect.left - 7, trackWidth)) / trackWidth) * MAX_DIFFICULTY;
+	}, []);
 
-	const onUp = () => {
-		if (!drag) return;
-		const rounded = Math.round(drag.value);
-		if (drag.which === "lo") {
-			const snapped = Math.max(0, Math.min(rounded, parentHi - 1));
-			onChange([snapped, parentHi]);
+	const onUp = useCallback(() => {
+		const d = dragRef.current;
+		if (!d) return;
+		dragRef.current = null; // prevent double-commit if both container and global listener fire
+		const rounded = Math.round(d.value);
+		if (d.which === "lo") {
+			onChange([Math.max(0, Math.min(rounded, parentHi - 1)), parentHi]);
 		} else {
-			const snapped = Math.max(parentLo + 1, Math.min(rounded, MAX_DIFFICULTY));
-			onChange([parentLo, snapped]);
+			onChange([parentLo, Math.max(parentLo + 1, Math.min(rounded, MAX_DIFFICULTY))]);
 		}
 		setDrag(null);
-	};
+	}, [parentLo, parentHi, onChange]);
 
 	useGlobalPointerCancel(onUp);
 
+	// Fires when pointer lands on the track (visual overlays are pointer-events:none, so events
+	// fall through to this container). Snaps the nearest thumb to the tap position.
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent<HTMLDivElement>) => {
+			e.stopPropagation();
+			const tapValue = getValueAt(e.clientX);
+			const which: "lo" | "hi" = Math.abs(tapValue - parentLo) <= Math.abs(tapValue - parentHi) ? "lo" : "hi";
+			const clamped =
+				which === "lo"
+					? Math.max(0, Math.min(tapValue, parentHi - 0.01))
+					: Math.max(parentLo + 0.01, Math.min(tapValue, MAX_DIFFICULTY));
+			setDrag({ which, value: clamped, fromTrack: true });
+			containerRef.current!.setPointerCapture(e.pointerId);
+		},
+		[parentLo, parentHi, getValueAt],
+	);
+
+	const handlePointerMove = useCallback(
+		(e: React.PointerEvent<HTMLDivElement>) => {
+			const d = dragRef.current;
+			if (!d?.fromTrack) return;
+			const newValue = getValueAt(e.clientX);
+			const clamped =
+				d.which === "lo"
+					? Math.max(0, Math.min(newValue, parentHi - 0.01))
+					: Math.max(parentLo + 0.01, Math.min(newValue, MAX_DIFFICULTY));
+			setDrag({ which: d.which, value: clamped, fromTrack: true });
+		},
+		[parentLo, parentHi, getValueAt],
+	);
+
+	// Native input onChange drives drag updates when the user grabs a thumb directly
 	const handleChange = (which: "lo" | "hi") => (e: React.ChangeEvent<HTMLInputElement>) => {
 		const raw = +e.target.value;
-		if (which === "lo") {
-			setDrag({ which, value: Math.max(0, Math.min(raw, parentHi - 0.01)) });
-		} else {
-			setDrag({ which, value: Math.max(parentLo + 0.01, Math.min(raw, MAX_DIFFICULTY)) });
-		}
+		const clamped =
+			which === "lo"
+				? Math.max(0, Math.min(raw, parentHi - 0.01))
+				: Math.max(parentLo + 0.01, Math.min(raw, MAX_DIFFICULTY));
+		setDrag({ which, value: clamped, fromTrack: false });
 	};
 
 	const popupDifficulty = drag
@@ -82,7 +118,14 @@ function DualRangeSlider({
 		: null;
 
 	return (
-		<div className="dual-range">
+		<div
+			className="dual-range"
+			ref={containerRef}
+			onPointerDown={handlePointerDown}
+			onPointerMove={handlePointerMove}
+			onPointerUp={onUp}
+			onPointerCancel={onUp}
+		>
 			<div className="dual-range__track" aria-hidden />
 			<div
 				className="dual-range__fill"
@@ -122,11 +165,9 @@ function DualRangeSlider({
 				min={0}
 				max={MAX_DIFFICULTY}
 				step="any"
-				value={drag?.which === "lo" ? drag.value : parentLo}
+				value={lo}
 				onChange={handleChange("lo")}
-				onPointerDown={onDown("lo")}
-				onPointerUp={onUp}
-				onPointerCancel={onUp}
+				onPointerDown={(e) => e.stopPropagation()}
 			/>
 			<input
 				type="range"
@@ -135,11 +176,9 @@ function DualRangeSlider({
 				min={0}
 				max={MAX_DIFFICULTY}
 				step="any"
-				value={drag?.which === "hi" ? drag.value : parentHi}
+				value={hi}
 				onChange={handleChange("hi")}
-				onPointerDown={onDown("hi")}
-				onPointerUp={onUp}
-				onPointerCancel={onUp}
+				onPointerDown={(e) => e.stopPropagation()}
 			/>
 		</div>
 	);
@@ -227,6 +266,7 @@ function FilterSection({
 			<div
 				className="filter-section__header-row"
 				onClick={() => onToggle(id)}
+				onPointerDown={(e) => e.stopPropagation()}
 				role="button"
 				tabIndex={0}
 				onKeyDown={(e) => {

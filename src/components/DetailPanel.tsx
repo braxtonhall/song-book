@@ -172,15 +172,13 @@ export function DetailPanel({
 						<button
 							className="detail-panel__add-queue-btn"
 							onPointerDown={(e) => e.stopPropagation()}
-							onPointerUp={(e) => {
-								if (e.button === 0) onAddToQueue(entry);
-							}}
+							onClick={() => onAddToQueue(entry)}
 						>
 							Add to Queue
 						</button>
 					)}
 					{entry.vocalParts > 0 && entry.lyrics && lyrics && (
-						<div className="detail-panel__lyrics">
+						<div className="detail-panel__lyrics" onPointerDown={(e) => e.stopPropagation()}>
 							<pre className="detail-panel__lyrics-text">{lyrics}</pre>
 						</div>
 					)}
