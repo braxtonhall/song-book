@@ -23,7 +23,9 @@
 		"yjs": "^13.6.30"
 	},
 	"scripts": {
+		"prestart": "tsx scripts/download-sources.ts",
 		"start": "react-scripts start",
+		"prebuild": "tsx scripts/download-sources.ts",
 		"build": "react-scripts build",
 		"test": "react-scripts test",
 		"eject": "react-scripts eject",
@@ -51,7 +53,8 @@
 		"@types/qrcode": "^1.5.6",
 		"husky": ">=6",
 		"lint-staged": ">=10",
-		"prettier": "^3.8.3"
+		"prettier": "^3.8.3",
+		"tsx": "^4.21.0"
 	},
 	"prettier": {
 		"useTabs": true,

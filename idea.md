@@ -4,9 +4,8 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 
 - Filter on more of the C3 comments
 - add unfurling metadata
-- add names to the genres/sources
-- integrate with https://github.com/YARC-Official/OpenSource
-- add the list of song names from here https://github.com/trojannemo/Nautilus/blob/e42ae16deb9ed8a48e142996f85bf08939511c65/Nautilus/DTAParser.cs#L1558
+- add names for the remaining sources
+- add icons for the sources
 - add a heart + liked filter
 - playlists
 - data import/export in settings

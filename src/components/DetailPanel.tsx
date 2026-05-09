@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Entry } from "../types";
 import { AudioPlayer } from "./AudioPlayer";
 import { Panel } from "./Panel";
 import { useSongPassword } from "../hooks/useSongPassword";
 import "./DetailPanel.css";
+import { useSources } from "../hooks/useSources";
+import { getGenre } from "../utilities/genre";
 
 const RATING_LABELS = ["Unrated", "Family Friendly", "Supervision Recommended"];
 const DIFFICULTY_LABELS = [
@@ -75,6 +77,7 @@ export function DetailPanel({
 }) {
 	const { password: songPassword } = useSongPassword();
 	const [lyrics, setLyrics] = useState<string | null>(null);
+	const sources = useSources();
 
 	useEffect(() => {
 		setLyrics(null);
@@ -97,6 +100,8 @@ export function DetailPanel({
 			cancelled = true;
 		};
 	}, [entry]);
+
+	const source = useMemo(() => sources.get(entry?.source ?? ""), [entry, sources]);
 
 	return (
 		<Panel
@@ -159,8 +164,8 @@ export function DetailPanel({
 					</div>
 
 					<div className="detail-panel__meta">
-						{entry.genre && <span>{entry.genre}</span>}
-						{entry.source && <span>{entry.source}</span>}
+						{entry.genre && <span>{getGenre(entry.genre)}</span>}
+						{entry.source && <span>{source.name}</span>}
 					</div>
 
 					<div className="detail-panel__badges">

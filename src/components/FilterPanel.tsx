@@ -4,6 +4,8 @@ import { Entry, FilterState, DEFAULT_FILTER_STATE, InstrumentKey, isFilterActive
 import { Panel } from "./Panel";
 import "./FilterPanel.css";
 import { useGlobalPointerCancel } from "../hooks/useGlobalPointerCancel";
+import { useSources } from "../hooks/useSources";
+import { getGenre } from "../utilities/genre";
 
 const MAX_DIFFICULTY = 8;
 
@@ -347,8 +349,22 @@ export function FilterPanel({
 	filterState: FilterState;
 	onFilterChange: Dispatch<SetStateAction<FilterState>>;
 }) {
-	const genres = useMemo(() => [...new Set(entries.map((e) => e.genre))].sort(), [entries]);
-	const sources = useMemo(() => [...new Set(entries.map((e) => e.source))].sort(), [entries]);
+	const { get: getSource } = useSources();
+	const genres = useMemo(
+		() =>
+			[...new Set(entries.map((e) => e.genre))]
+				.map((id) => ({ id, name: getGenre(id) }))
+				.sort((a, b) => a.name.localeCompare(b.name)),
+		[entries],
+	);
+	const sources = useMemo(
+		() =>
+			[...new Set(entries.map((e) => e.source))]
+				.map((source) => getSource(source))
+				.sort((a, b) => a.name.localeCompare(b.name)),
+		[entries, getSource],
+	);
+	console.log(sources);
 	const decades = useMemo(
 		() => [...new Set(entries.map((e) => Math.floor(e.year / 10) * 10).filter((d) => d >= 1950))].sort(),
 		[entries],
@@ -470,21 +486,21 @@ export function FilterPanel({
 				>
 					<div className="checklist" onPointerDown={(e) => e.stopPropagation()}>
 						{genres.map((item) => (
-							<label key={item} className="checklist__item">
+							<label key={item.id} className="checklist__item">
 								<input
 									type="checkbox"
 									className="checklist__checkbox"
-									checked={filterState.genres.includes(item)}
+									checked={filterState.genres.includes(item.id)}
 									onChange={() => {
 										onFilterChange((prev) => ({
 											...prev,
-											genres: prev.genres.includes(item)
-												? prev.genres.filter((s) => s !== item)
-												: [...prev.genres, item],
+											genres: prev.genres.includes(item.id)
+												? prev.genres.filter((s) => s !== item.id)
+												: [...prev.genres, item.id],
 										}));
 									}}
 								/>
-								<span className="checklist__text">{item}</span>
+								<span className="checklist__text">{item.name}</span>
 							</label>
 						))}
 					</div>
@@ -499,22 +515,22 @@ export function FilterPanel({
 					onToggle={toggleSection}
 				>
 					<div className="checklist" onPointerDown={(e) => e.stopPropagation()}>
-						{sources.map((item) => (
-							<label key={item} className="checklist__item">
+						{sources.map((source) => (
+							<label key={source.id} className="checklist__item">
 								<input
 									type="checkbox"
 									className="checklist__checkbox"
-									checked={filterState.sources.includes(item)}
+									checked={filterState.sources.includes(source.id)}
 									onChange={() => {
 										onFilterChange((prev) => ({
 											...prev,
-											sources: prev.sources.includes(item)
-												? prev.sources.filter((s) => s !== item)
-												: [...prev.sources, item],
+											sources: prev.sources.includes(source.id)
+												? prev.sources.filter((s) => s !== source.id)
+												: [...prev.sources, source.id],
 										}));
 									}}
 								/>
-								<span className="checklist__text">{item}</span>
+								<span className="checklist__text">{source.name}</span>
 							</label>
 						))}
 					</div>
