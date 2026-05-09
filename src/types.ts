@@ -76,6 +76,15 @@ export type Entry = {
 	proBassDifficulty: number;
 	bandDifficulty: number;
 	vocalParts: number;
+	vocalsRank: number;
+	guitarRank: number;
+	drumRank: number;
+	bassRank: number;
+	keysRank: number;
+	proKeysRank: number;
+	proGuitarRank: number;
+	proBassRank: number;
+	bandRank: number;
 	multitracks: boolean;
 	master: boolean;
 	rating: number;
@@ -109,6 +118,18 @@ export const DIFFICULTY_FIELD: Record<InstrumentKey, keyof Entry> = {
 	proBass: "proBassDifficulty",
 	proKeys: "proKeysDifficulty",
 	band: "bandDifficulty",
+};
+
+export const RANK_FIELD: Record<InstrumentKey, keyof Entry> = {
+	guitar: "guitarRank",
+	bass: "bassRank",
+	drums: "drumRank",
+	keys: "keysRank",
+	vocals: "vocalsRank",
+	proGuitar: "proGuitarRank",
+	proBass: "proBassRank",
+	proKeys: "proKeysRank",
+	band: "bandRank",
 };
 
 export const INSTRUMENT_LABELS: Record<InstrumentKey, string> = {

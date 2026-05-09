@@ -1,4 +1,4 @@
-import { Entry, InstrumentKey, DIFFICULTY_FIELD } from "../types";
+import { Entry, InstrumentKey, DIFFICULTY_FIELD, RANK_FIELD } from "../types";
 import { SortBy } from "../components/SortHeader";
 
 export const sort = (type: SortBy, difficultyKey?: InstrumentKey) => {
@@ -12,9 +12,11 @@ export const sort = (type: SortBy, difficultyKey?: InstrumentKey) => {
 				(a.sortAlbumName || "").localeCompare(b.sortAlbumName || "") ||
 				a.albumTrackIndex - b.albumTrackIndex;
 		case "difficulty": {
-			const field = DIFFICULTY_FIELD[difficultyKey ?? "band"];
+			const difficulty = DIFFICULTY_FIELD[difficultyKey ?? "band"];
+			const rank = RANK_FIELD[difficultyKey ?? "band"];
 			return (a: Entry, b: Entry) =>
-				(a[field] as number) - (b[field] as number) ||
+				(a[difficulty] as number) - (b[difficulty] as number) ||
+				(a[rank] as number) - (b[rank] as number) ||
 				a.sortSong.localeCompare(b.sortSong) ||
 				a.sortArtist.localeCompare(b.sortArtist);
 		}

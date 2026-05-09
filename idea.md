@@ -16,8 +16,6 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 - Move play button down to beside enqueue. Two big buttons. Enqueue changes to "Queued" for a moment and is disabled when you press it.
 - Or maybe... The play button is just a floating mute/unmute button?
 - port audio handling code from aisia.ca -- all songs should smoothly transition
-- use internal ranking for difficulty sorting
-- party dot should just be on if you're in a party
 - used indexed storage
 - put a cap on how many songs in queue/history
   - queue has a popup saying you hit the limit
