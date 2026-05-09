@@ -77,6 +77,7 @@ export function DetailPanel({
 }) {
 	const { password: songPassword } = useSongPassword();
 	const [lyrics, setLyrics] = useState<string | null>(null);
+	const [addedToQueue, setAddedToQueue] = useState(false);
 	const sources = useSources();
 
 	useEffect(() => {
@@ -166,6 +167,7 @@ export function DetailPanel({
 					<div className="detail-panel__meta">
 						{entry.genre && <span>{getGenre(entry.genre)}</span>}
 						{entry.source && <span>{source.name}</span>}
+						{entry.author && <span>{entry.author}</span>}
 					</div>
 
 					<div className="detail-panel__badges">
@@ -178,11 +180,15 @@ export function DetailPanel({
 					</div>
 					{onAddToQueue && (
 						<button
-							className="detail-panel__add-queue-btn"
+							className={"detail-panel__add-queue-btn" + (addedToQueue ? " detail-panel__add-queue-btn--success" : "")}
 							onPointerDown={(e) => e.stopPropagation()}
-							onClick={() => onAddToQueue(entry)}
+							onClick={() => {
+								onAddToQueue(entry);
+								setAddedToQueue(true);
+								setTimeout(() => setAddedToQueue(false), 1200);
+							}}
 						>
-							Add to Queue
+							{addedToQueue ? "Added to queue" : "Add to Queue"}
 						</button>
 					)}
 					{entry.vocalParts > 0 && entry.lyrics && lyrics && (

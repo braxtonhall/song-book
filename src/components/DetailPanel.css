@@ -203,17 +203,28 @@
 	padding: 12px;
 	border-radius: 8px;
 	border: none;
-	background: #ffb300;
-	color: #1a1100;
+	background: rgba(255, 255, 255, 0.12);
+	color: rgba(255, 255, 255, 0.7);
 	font-size: 15px;
 	font-weight: 600;
 	cursor: pointer;
-	transition: background 0.15s;
+	transition:
+		background 0.2s,
+		color 0.2s;
 	margin-top: 4px;
 }
 
 .detail-panel__add-queue-btn:hover {
-	background: #e6a100;
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.detail-panel__add-queue-btn--success {
+	background: #ffb300;
+	color: #121212;
+}
+
+.detail-panel__add-queue-btn--success:hover {
+	background: #ffb300;
 }
 
 .detail-panel__lyrics {
