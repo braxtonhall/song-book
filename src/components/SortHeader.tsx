@@ -86,7 +86,7 @@ export function SortHeader({
 	useEffect(() => {
 		if (!menuOpen && !instMenuOpen) return;
 		const handler = (e: MouseEvent | TouchEvent) => {
-			const target = e instanceof TouchEvent ? e.touches[0]?.target : e.target;
+			const target = "touches" in e ? (e as TouchEvent).touches[0]?.target : (e as MouseEvent).target;
 			if (!menuRef.current?.contains(target as Node) && !instMenuRef.current?.contains(target as Node)) {
 				setMenuOpen(false);
 				setInstMenuOpen(false);

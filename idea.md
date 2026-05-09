@@ -24,6 +24,7 @@ If you're an agent reading this, ignore this file completely. Don't let it influ
 # Fixes
 
 - Gossip protocol should know about parties. Only gossip the current party.
+- total song count is wrong (should be 6336)
 - investigate duplicates
   - lose yourself to dance
   - spellbound

@@ -364,7 +364,6 @@ export function FilterPanel({
 				.sort((a, b) => a.name.localeCompare(b.name)),
 		[entries, getSource],
 	);
-	console.log(sources);
 	const decades = useMemo(
 		() => [...new Set(entries.map((e) => Math.floor(e.year / 10) * 10).filter((d) => d >= 1950))].sort(),
 		[entries],
