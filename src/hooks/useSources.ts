@@ -18,6 +18,11 @@ export const useSources = () => {
 					});
 				}
 			}
+			map.set("ugc_plus", {
+				id: "ugc_plus",
+				name: "Custom Songs",
+				icon: `https://raw.githubusercontent.com/YARC-Official/OpenSource/master/base/icons/custom.png`,
+			});
 		}
 
 		return map;
