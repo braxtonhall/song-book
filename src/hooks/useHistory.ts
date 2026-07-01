@@ -1,18 +1,22 @@
 import { HistoryEntry } from "../partyTypes";
 import { useState, useEffect } from "react";
+import { getAll, put, remove, clear } from "../utilities/indexeddb";
 
-const HISTORY_KEY = "song-book:history";
+const STORE = "history";
 
 let history: HistoryEntry[] = [];
-try {
-	const raw = localStorage.getItem(HISTORY_KEY);
-	if (raw) history = JSON.parse(raw);
-} catch {
-	history = [];
+let loaded = false;
+
+async function load(): Promise<HistoryEntry[]> {
+	if (loaded) return history;
+	const data = await getAll<HistoryEntry>(STORE);
+	history = data;
+	loaded = true;
+	return history;
 }
 
-function persist() {
-	localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+async function persist(entry: HistoryEntry) {
+	await put(STORE, entry);
 }
 
 type HistoryListener = () => void;
@@ -28,19 +32,19 @@ export function addHistoryEntry(entry: Omit<HistoryEntry, "uuid"> & { uuid?: str
 		uuid: entry.uuid || crypto.randomUUID(),
 	};
 	history = [...history, withUuid];
-	persist();
+	persist(withUuid);
 	notify();
 }
 
 export function removeHistoryEntry(uuid: string) {
 	history = history.filter((e) => e.uuid !== uuid);
-	persist();
+	remove(STORE, uuid);
 	notify();
 }
 
 export function clearHistory() {
 	history = [];
-	persist();
+	clear(STORE);
 	notify();
 }
 
@@ -55,15 +59,19 @@ export function mergeHistoryEntries(entries: HistoryEntry[]) {
 		.map((e) => (e.uuid ? e : { ...e, uuid: crypto.randomUUID() }));
 	if (newEntries.length > 0) {
 		history = [...history, ...newEntries];
-		persist();
+		for (const entry of newEntries) {
+			persist(entry);
+		}
 		notify();
 	}
 }
 
 export function useHistory() {
-	const [state, setState] = useState<HistoryEntry[]>(history);
+	const [state, setState] = useState<HistoryEntry[]>([]);
 
 	useEffect(() => {
+		load().then((data) => setState(data));
+
 		const listener = () => setState([...history]);
 		listeners.add(listener);
 		return () => {

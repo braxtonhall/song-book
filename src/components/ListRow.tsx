@@ -30,6 +30,7 @@ export type ListRowProps = {
 	augmentedItems?: AugmentedItem[] | null;
 	difficultyKey?: InstrumentKey;
 	onDifficultyKeyChange?: (k: InstrumentKey) => void;
+	onAddToPlaylist?: (entry: Entry) => void;
 };
 
 export function ListRow({
@@ -61,6 +62,7 @@ export function ListRow({
 	augmentedItems,
 	difficultyKey,
 	onDifficultyKeyChange,
+	onAddToPlaylist,
 }: RowComponentProps<ListRowProps>) {
 	if (headerOffset === 1 && index === 0 && sortBy && onSortChange) {
 		return (
@@ -108,6 +110,7 @@ export function ListRow({
 				onSelect={onSelect}
 				isSelected={isSelected}
 				onAddToQueue={onAddToQueue}
+				onAddToPlaylist={onAddToPlaylist}
 				onSwipeChange={onSwipeChange}
 				showDragHandle={showDragHandle}
 				onDragStart={onDragStart}
@@ -134,6 +137,7 @@ export function ListRow({
 			onSelect={onSelect}
 			isSelected={isSelected}
 			onAddToQueue={onAddToQueue}
+			onAddToPlaylist={onAddToPlaylist}
 			onSwipeChange={onSwipeChange}
 			showDragHandle={showDragHandle}
 			onDragStart={onDragStart}

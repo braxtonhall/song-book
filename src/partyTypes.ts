@@ -26,3 +26,10 @@ export type WireMessage =
 	| { type: "PONG"; partyId: string }
 	| { type: "HISTORY_REQUEST"; partyId: string }
 	| { type: "HISTORY_RESPONSE"; partyId: string; entries: HistoryEntry[] };
+
+export type Playlist = {
+	id: string;
+	name: string;
+	entries: Entry[];
+	createdAt: string;
+};

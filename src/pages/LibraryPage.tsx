@@ -60,6 +60,7 @@ interface LibraryPageProps {
 	selectedEntryId: number | null;
 	panelOpen: boolean;
 	onAddToQueue?: (entry: Entry) => void;
+	onAddToPlaylist?: (entry: Entry) => void;
 	onToggleFilter: () => void;
 	filterActive: boolean;
 	filterState: FilterState;
@@ -71,6 +72,7 @@ export function LibraryPage({
 	selectedEntryId,
 	panelOpen,
 	onAddToQueue,
+	onAddToPlaylist,
 	onToggleFilter,
 	filterActive,
 	filterState,
@@ -252,6 +254,7 @@ export function LibraryPage({
 						selectedId: selectedEntryId,
 						panelOpen,
 						onAddToQueue,
+						onAddToPlaylist,
 						onSwipeChange: handleSwipeChange,
 						filteredCount: filteredEntries.length,
 						totalCount: entries.length,

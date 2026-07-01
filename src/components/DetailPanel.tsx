@@ -67,6 +67,7 @@ export function DetailPanel({
 	onRestore,
 	isLandscape,
 	onAddToQueue,
+	onAddToPlaylist,
 }: {
 	entry: Entry | null;
 	dismissed: boolean;
@@ -74,6 +75,7 @@ export function DetailPanel({
 	onRestore?: () => void;
 	isLandscape: boolean;
 	onAddToQueue?: (entry: Entry) => void;
+	onAddToPlaylist?: (entry: Entry) => void;
 }) {
 	const { password: songPassword } = useSongPassword();
 	const [lyrics, setLyrics] = useState<string | null>(null);
@@ -189,6 +191,15 @@ export function DetailPanel({
 							}}
 						>
 							{addedToQueue ? "Added to queue" : "Add to Queue"}
+						</button>
+					)}
+					{onAddToPlaylist && (
+						<button
+							className="detail-panel__add-playlist-btn"
+							onPointerDown={(e) => e.stopPropagation()}
+							onClick={() => onAddToPlaylist(entry)}
+						>
+							Save to Playlist
 						</button>
 					)}
 					{entry.vocalParts > 0 && entry.lyrics && lyrics && (

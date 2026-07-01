@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { RowComponentProps } from "react-window";
 import { useGlobalPointerCancel } from "../hooks/useGlobalPointerCancel";
 import { useVelocityTrace } from "../hooks/useVelocityTrace";
@@ -10,6 +10,7 @@ export type EntryRowProps = {
 	onSelect: (entry: Entry) => void;
 	isSelected?: boolean;
 	onAddToQueue?: (entry: Entry) => void;
+	onAddToPlaylist?: (entry: Entry) => void;
 	onSwipeChange?: (active: boolean) => void;
 	showDragHandle?: boolean;
 	onDragStart?: (index: number, e: React.PointerEvent) => void;
@@ -32,6 +33,7 @@ export function EntryRow({
 	onSelect,
 	isSelected,
 	onAddToQueue,
+	onAddToPlaylist,
 	onSwipeChange,
 	showDragHandle,
 	onDragStart,
@@ -51,7 +53,17 @@ export function EntryRow({
 	const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
 	const isSwipingRef = useRef(false);
 	const suppressNextClickRef = useRef(false);
+	const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const { observePoint, resetPoints } = useVelocityTrace(SWIPE_THRESHOLD);
+
+	const cancelLongPress = useCallback(() => {
+		if (longPressTimerRef.current) {
+			clearTimeout(longPressTimerRef.current);
+			longPressTimerRef.current = null;
+		}
+	}, []);
+
+	useEffect(() => () => cancelLongPress(), [cancelLongPress]);
 
 	const snapBack = useCallback(() => {
 		setIsSnapping(true);
@@ -73,8 +85,15 @@ export function EntryRow({
 			isSwipingRef.current = false;
 			resetPoints();
 			observePoint(e);
+			if (onAddToPlaylist) {
+				cancelLongPress();
+				longPressTimerRef.current = setTimeout(() => {
+					longPressTimerRef.current = null;
+					onAddToPlaylist(entry);
+				}, 600);
+			}
 		},
-		[observePoint, resetPoints],
+		[observePoint, resetPoints, onAddToPlaylist, entry, cancelLongPress],
 	);
 
 	const handlePointerMove = useCallback(
@@ -85,8 +104,11 @@ export function EntryRow({
 			if (!isSwipingRef.current) {
 				if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
 					isSwipingRef.current = true;
+					cancelLongPress();
 					e.currentTarget.setPointerCapture(e.pointerId);
 					onSwipeChange?.(true);
+				} else if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+					cancelLongPress();
 				} else {
 					return;
 				}
@@ -97,11 +119,12 @@ export function EntryRow({
 			setCrossedThreshold(Math.abs(dx) > SWIPE_THRESHOLD);
 			observePoint(e);
 		},
-		[onSwipeChange, observePoint],
+		[onSwipeChange, observePoint, cancelLongPress],
 	);
 
 	const handlePointerUp = useCallback(
 		(e: { clientX: number; clientY: number; timeStamp: number }) => {
+			cancelLongPress();
 			if (!swipeStartRef.current) return;
 			const startX = swipeStartRef.current.x;
 			swipeStartRef.current = null;
@@ -134,12 +157,13 @@ export function EntryRow({
 				}
 			}
 		},
-		[entry, index, onAddToQueue, onSwipeChange, onDismissSwipe, snapBack, observePoint],
+		[entry, index, onAddToQueue, onSwipeChange, onDismissSwipe, snapBack, observePoint, cancelLongPress],
 	);
 
 	useGlobalPointerCancel(handlePointerUp);
 
 	const handlePointerCancel = useCallback(() => {
+		cancelLongPress();
 		swipeStartRef.current = null;
 		if (isSwipingRef.current) {
 			isSwipingRef.current = false;
@@ -147,7 +171,7 @@ export function EntryRow({
 			setCrossedThreshold(false);
 			snapBack();
 		}
-	}, [snapBack, onSwipeChange]);
+	}, [snapBack, onSwipeChange, cancelLongPress]);
 
 	const handleClick = useCallback(() => {
 		if (suppressNextClickRef.current) {

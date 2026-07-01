@@ -9,6 +9,9 @@ import { QueuePage } from "./pages/QueuePage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { PartyPage } from "./pages/PartyPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { PlaylistPage } from "./pages/PlaylistPage";
+import { PlaylistDetailPage } from "./pages/PlaylistDetailPage";
+import { PlaylistPicker } from "./components/PlaylistPicker";
 import { useLandscape } from "./hooks/useLandscape";
 import { useQueue } from "./hooks/useQueue";
 import { usePeer } from "./hooks/usePeer";
@@ -22,10 +25,11 @@ import {
 } from "./hooks/useHistory";
 import { usePeerLiveness } from "./hooks/usePeerLiveness";
 import { useSongPassword } from "./hooks/useSongPassword";
+import { usePlaylists, addToPlaylist, createPlaylist } from "./hooks/usePlaylists";
 import "./App.css";
 import "./pages/PartyPage.css";
 
-type PageId = "library" | "queue" | "history" | "party" | "settings";
+type PageId = "library" | "queue" | "history" | "party" | "playlists" | "playlist-detail" | "settings";
 
 const FILTER_STATE_STORAGE_KEY = "song-book:filter-state";
 
@@ -87,6 +91,9 @@ function App() {
 	const partyPeerBaselineRef = useRef(0);
 	const { password } = useSongPassword();
 	const [partyId, setPartyId] = useState<string | null>(() => sessionStorage.getItem("song-book:party-id"));
+	const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
+	const [playlistPickerEntry, setPlaylistPickerEntry] = useState<Entry | null>(null);
+	const { playlists, create, delete: deletePlaylist_, rename, removeEntry, reorderEntries } = usePlaylists();
 
 	// ── Peer / Gossip / Liveness ──────────────────────────────────────────────
 	const gossipRef = useRef<ReturnType<typeof useGossip> | null>(null);
@@ -499,6 +506,69 @@ function App() {
 		setSelectedEntry(null);
 	}, [filterDismissed]);
 
+	const handleSelectPlaylist = useCallback((id: string) => {
+		setActivePlaylistId(id);
+		setPage("playlist-detail");
+	}, []);
+
+	const handleBackFromPlaylist = useCallback(() => {
+		setActivePlaylistId(null);
+		setPage("playlists");
+	}, []);
+
+	const handleAddAllToQueue = useCallback(
+		(playlistId: string) => {
+			const pl = playlists.find((p) => p.id === playlistId);
+			if (!pl) return;
+			for (const entry of pl.entries) {
+				if (!queue.some((qe) => qe.entry.id === entry.id)) {
+					addToQueue(entry, currentMode === "party" ? peerId : null);
+				}
+			}
+			if (page !== "queue") {
+				const toasts = pl.entries
+					.filter((entry) => !queue.some((qe) => qe.entry.id === entry.id))
+					.map((_, i) => Date.now() + i);
+				setQueueToasts((prev) => [...prev, ...toasts]);
+				toasts.forEach((id) => {
+					setTimeout(() => {
+						setQueueToasts((prev) => prev.filter((t) => t !== id));
+					}, 1500);
+				});
+			}
+		},
+		[playlists, queue, addToQueue, currentMode, peerId, page],
+	);
+
+	const handleAddToPlaylist = useCallback((entry: Entry) => {
+		setPlaylistPickerEntry(entry);
+	}, []);
+
+	const handlePlaylistPick = useCallback(
+		(playlistId: string) => {
+			if (playlistPickerEntry) {
+				addToPlaylist(playlistId, playlistPickerEntry);
+			}
+			setPlaylistPickerEntry(null);
+		},
+		[playlistPickerEntry],
+	);
+
+	const handlePlaylistCreate = useCallback(
+		(name: string) => {
+			const pl = createPlaylist(name);
+			if (playlistPickerEntry) {
+				addToPlaylist(pl.id, playlistPickerEntry);
+			}
+			setPlaylistPickerEntry(null);
+		},
+		[playlistPickerEntry],
+	);
+
+	const handleClosePlaylistPicker = useCallback(() => {
+		setPlaylistPickerEntry(null);
+	}, []);
+
 	useEffect(() => {
 		if (page !== "library") {
 			setFilterDismissed(true);
@@ -521,7 +591,7 @@ function App() {
 		<>
 			<NavBar
 				landscape={landscape}
-				activePage={page}
+				activePage={page === "playlist-detail" ? "playlists" : page}
 				onNavigate={setPage}
 				queueToasts={queueToasts}
 				partyBadge={partyBadge}
@@ -534,6 +604,7 @@ function App() {
 						selectedEntryId={selectedEntry?.id ?? null}
 						panelOpen={!sheetDismissed}
 						onAddToQueue={handleAddToQueue}
+						onAddToPlaylist={handleAddToPlaylist}
 						onToggleFilter={handleToggleFilter}
 						filterActive={filterActive}
 						filterState={filterState}
@@ -575,6 +646,38 @@ function App() {
 					/>
 				)}
 				{page === "settings" && <SettingsPage />}
+				{page === "playlists" && (
+					<PlaylistPage
+						playlists={playlists}
+						onSelectPlaylist={handleSelectPlaylist}
+						onCreatePlaylist={create}
+						onDeletePlaylist={deletePlaylist_}
+					/>
+				)}
+				{page === "playlist-detail" &&
+					activePlaylistId &&
+					(() => {
+						const pl = playlists.find((p) => p.id === activePlaylistId);
+						if (!pl) return null;
+						return (
+							<PlaylistDetailPage
+								playlistName={pl.name}
+								entries={pl.entries}
+								onBack={handleBackFromPlaylist}
+								onAddAllToQueue={() => handleAddAllToQueue(activePlaylistId!)}
+								onReorder={(from, to) => reorderEntries(activePlaylistId!, from, to)}
+								onRemove={(entryId) => removeEntry(activePlaylistId!, entryId)}
+								onRename={(name) => rename(activePlaylistId!, name)}
+								onDelete={() => {
+									deletePlaylist_(activePlaylistId!);
+									handleBackFromPlaylist();
+								}}
+								onSelect={handleSelect}
+								selectedEntryId={selectedEntry?.id ?? null}
+								panelOpen={!sheetDismissed}
+							/>
+						);
+					})()}
 				<DetailPanel
 					entry={selectedEntry}
 					dismissed={sheetDismissed}
@@ -582,6 +685,7 @@ function App() {
 					onRestore={() => setSheetDismissed(false)}
 					isLandscape={landscape}
 					onAddToQueue={handleAddToQueue}
+					onAddToPlaylist={handleAddToPlaylist}
 				/>
 				<FilterPanel
 					dismissed={filterDismissed}
@@ -746,6 +850,15 @@ function App() {
 						</div>
 					</div>
 				</div>
+			)}
+			{playlistPickerEntry && (
+				<PlaylistPicker
+					playlists={playlists}
+					entry={playlistPickerEntry}
+					onPick={handlePlaylistPick}
+					onCreate={handlePlaylistCreate}
+					onClose={handleClosePlaylistPicker}
+				/>
 			)}
 		</>
 	);

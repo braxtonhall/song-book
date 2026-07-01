@@ -3,24 +3,26 @@ import * as Y from "yjs";
 import { Entry } from "../types";
 import { QueueEntry } from "../partyTypes";
 import { addHistoryEntry } from "./useHistory";
+import { getAll, putAll } from "../utilities/indexeddb";
 
-const SOLO_KEY = "song-book:queue-solo";
+const QUEUE_STORE = "queue";
 const PARTY_QUEUE_KEY = "song-book:queue-party";
 
-// ── Module-level solo state ─────────────────────────────────────────────────
 let soloQueue: QueueEntry[] = [];
-try {
-	const raw = localStorage.getItem(SOLO_KEY);
-	if (raw) soloQueue = JSON.parse(raw);
-} catch {
-	soloQueue = [];
+let soloLoaded = false;
+
+async function loadSolo(): Promise<QueueEntry[]> {
+	if (soloLoaded) return soloQueue;
+	const data = await getAll<QueueEntry>(QUEUE_STORE);
+	soloQueue = data;
+	soloLoaded = true;
+	return soloQueue;
 }
 
-function persistSolo() {
-	localStorage.setItem(SOLO_KEY, JSON.stringify(soloQueue));
+async function persistSolo() {
+	await putAll(QUEUE_STORE, soloQueue);
 }
 
-// ── Cross-instance sync ─────────────────────────────────────────────────────
 type QueueStateListener = () => void;
 const queueStateListeners = new Set<QueueStateListener>();
 
@@ -28,7 +30,6 @@ function notifyQueueState() {
 	queueStateListeners.forEach((fn) => fn());
 }
 
-// ── Module-level party state (lazily initialized) ───────────────────────────
 let currentMode: "solo" | "party" = "solo";
 let doc: Y.Doc | null = null;
 let yQueue: Y.Array<QueueEntry> | null = null;
@@ -62,13 +63,10 @@ function setupDocListeners() {
 	});
 }
 
-// ── Module init: if reconnecting (partyId in sessionStorage), enter party mode
 try {
 	const storedPartyId = sessionStorage.getItem("song-book:party-id");
-
 	if (storedPartyId) {
 		currentMode = "party";
-
 		doc = new Y.Doc();
 		yQueue = doc.getArray("queue");
 		yDismissed = doc.getMap("dismissed");
@@ -135,17 +133,23 @@ function leavePartyMode() {
 	notifyQueueState();
 }
 
-// ── Hook ────────────────────────────────────────────────────────────────────
 export function useQueue() {
 	const [queue, setQueue] = useState<QueueEntry[]>(() => {
 		if (currentMode === "party" && yQueue) return yQueue.toArray();
-		return soloQueue;
+		return [];
 	});
 	const [partyVersion, setPartyVersion] = useState(0);
 	const [mode, setMode] = useState<"solo" | "party">(currentMode);
+	const [ready, setReady] = useState(currentMode === "party" || soloLoaded);
 
-	// ── Cross-instance sync: update this hook's state when mode changes ────────
 	useEffect(() => {
+		if (currentMode === "solo") {
+			loadSolo().then((data) => {
+				setQueue(data);
+				setReady(true);
+			});
+		}
+
 		const listener = () => {
 			if (currentMode === "party" && yQueue) {
 				setQueue(yQueue.toArray());
@@ -161,25 +165,6 @@ export function useQueue() {
 		};
 	}, []);
 
-	// ── Solo: react to storage events (cross-tab sync, unlikely but correct) ─
-	useEffect(() => {
-		if (currentMode !== "solo") return;
-		const handler = () => {
-			const raw = localStorage.getItem(SOLO_KEY);
-			if (raw) {
-				try {
-					soloQueue = JSON.parse(raw);
-					setQueue(soloQueue);
-				} catch {
-					/* ignore */
-				}
-			}
-		};
-		window.addEventListener("storage", handler);
-		return () => window.removeEventListener("storage", handler);
-	}, []);
-
-	// ── Party: sync yjs array to React state ─────────────────────────────────
 	useEffect(() => {
 		if (currentMode !== "party" || !yQueue) return;
 		const yq = yQueue;
@@ -191,7 +176,6 @@ export function useQueue() {
 		};
 	}, [partyVersion]);
 
-	// ── Party: dismissed-map observer → history + array cleanup ──────────────
 	useEffect(() => {
 		if (currentMode !== "party" || !yDismissed) return;
 		const yd = yDismissed;
@@ -217,7 +201,6 @@ export function useQueue() {
 		};
 	}, [partyVersion]);
 
-	// ── Operations ───────────────────────────────────────────────────────────
 	const addToQueue = useCallback((entry: Entry, peerId: string | null) => {
 		if (currentMode === "party" && yQueue) {
 			yQueue.push([{ uuid: crypto.randomUUID(), entry, peerId }]);
@@ -305,6 +288,7 @@ export function useQueue() {
 
 	return {
 		queue,
+		ready,
 		addToQueue,
 		reorderQueue,
 		dismissFromQueue,
