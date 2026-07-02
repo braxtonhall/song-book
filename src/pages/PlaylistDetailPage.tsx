@@ -62,6 +62,7 @@ export function PlaylistDetailPage({
 	const [renameValue, setRenameValue] = useState("");
 	const renameInputRef = useRef<HTMLInputElement>(null);
 	const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+	const [removeConfirmEntry, setRemoveConfirmEntry] = useState<Entry | null>(null);
 
 	useEffect(() => {
 		const handler = () => setRowHeight(computeRowHeight());
@@ -213,10 +214,21 @@ export function PlaylistDetailPage({
 	const handleDismissSwipe = useCallback(
 		(index: number) => {
 			const entry = entries[index];
-			if (entry) onRemove(entry.id);
+			if (entry) setRemoveConfirmEntry(entry);
 		},
-		[entries, onRemove],
+		[entries],
 	);
+
+	const handleRemoveConfirm = useCallback(() => {
+		if (removeConfirmEntry) {
+			onRemove(removeConfirmEntry.id);
+			setRemoveConfirmEntry(null);
+		}
+	}, [removeConfirmEntry, onRemove]);
+
+	const handleRemoveCancel = useCallback(() => {
+		setRemoveConfirmEntry(null);
+	}, []);
 
 	const dropIndicatorTop: number | null = (() => {
 		if (dragStateRef.current === null || hoverIndex === null) return null;
@@ -391,6 +403,21 @@ export function PlaylistDetailPage({
 								Delete
 							</button>
 							<button className="party-dialog__button" onClick={handleDeleteCancel}>
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+			{removeConfirmEntry && (
+				<div className="party-dialog" onClick={handleRemoveCancel}>
+					<div className="party-dialog__box" onClick={(e) => e.stopPropagation()}>
+						<div className="party-dialog__title">Remove &ldquo;{removeConfirmEntry.song}&rdquo; from playlist?</div>
+						<div className="party-dialog__buttons">
+							<button className="party-dialog__button party-dialog__button--yes" onClick={handleRemoveConfirm}>
+								Remove
+							</button>
+							<button className="party-dialog__button" onClick={handleRemoveCancel}>
 								Cancel
 							</button>
 						</div>
