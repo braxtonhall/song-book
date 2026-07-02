@@ -29,8 +29,34 @@
 	margin: 0;
 }
 
+.playlist-picker__song-info {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 0 16px 12px;
+}
+
+.playlist-picker__song-art {
+	width: 40px;
+	height: 40px;
+	border-radius: 6px;
+	flex-shrink: 0;
+	object-fit: cover;
+}
+
+.playlist-picker__song-name {
+	flex: 1;
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 14px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .playlist-picker__list {
 	flex: 1;
+	min-height: 0;
+	max-height: 240px;
 	overflow-y: auto;
 	padding: 0 8px 8px;
 	scrollbar-width: thin;

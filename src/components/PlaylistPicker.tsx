@@ -34,6 +34,16 @@ export function PlaylistPicker({ playlists, entry, onPick, onCreate, onClose }: 
 		<div className="playlist-picker__overlay" onClick={onClose}>
 			<div className="playlist-picker__box" onClick={(e) => e.stopPropagation()}>
 				<h3 className="playlist-picker__title">Save to Playlist</h3>
+				<div className="playlist-picker__song-info">
+					{entry.albumArt && (
+						<img
+							className="playlist-picker__song-art"
+							src={`https://braxtonhall.ca/song-book-resources/art/${entry.albumArt}.png`}
+							alt=""
+						/>
+					)}
+					<div className="playlist-picker__song-name">{entry.song}</div>
+				</div>
 				<div className="playlist-picker__list">
 					{playlists.map((pl) => {
 						const alreadyIn = pl.entries.some((e) => e.id === entry.id);
