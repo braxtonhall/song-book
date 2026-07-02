@@ -618,6 +618,7 @@ function App() {
 						onSelect={handleSelect}
 						selectedEntryId={selectedEntry?.id ?? null}
 						panelOpen={!sheetDismissed}
+						onAddToPlaylist={handleAddToPlaylist}
 					/>
 				)}
 				{page === "history" && (
@@ -628,6 +629,7 @@ function App() {
 						onSelect={handleSelect}
 						selectedEntryId={selectedEntry?.id ?? null}
 						panelOpen={!sheetDismissed}
+						onAddToPlaylist={handleAddToPlaylist}
 					/>
 				)}
 				{page === "party" && (
@@ -675,6 +677,7 @@ function App() {
 								onSelect={handleSelect}
 								selectedEntryId={selectedEntry?.id ?? null}
 								panelOpen={!sheetDismissed}
+								onAddToPlaylist={handleAddToPlaylist}
 							/>
 						);
 					})()}

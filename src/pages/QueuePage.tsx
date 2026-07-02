@@ -22,6 +22,7 @@ interface QueuePageProps {
 	onSelect: (entry: Entry) => void;
 	selectedEntryId: number | null;
 	panelOpen: boolean;
+	onAddToPlaylist?: (entry: Entry) => void;
 }
 
 function computeRowHeight() {
@@ -32,7 +33,15 @@ function computeRowHeight() {
 const EDGE_THRESHOLD = 60;
 const MAX_SCROLL_SPEED = 12;
 
-export function QueuePage({ queue, onReorder, onDismiss, onSelect, selectedEntryId, panelOpen }: QueuePageProps) {
+export function QueuePage({
+	queue,
+	onReorder,
+	onDismiss,
+	onSelect,
+	selectedEntryId,
+	panelOpen,
+	onAddToPlaylist,
+}: QueuePageProps) {
 	const listRef = useListRef(null);
 	const dragStateRef = useRef<DragState | null>(null);
 	const dragCloneRef = useRef<HTMLDivElement | null>(null);
@@ -248,6 +257,7 @@ export function QueuePage({ queue, onReorder, onDismiss, onSelect, selectedEntry
 					onDismiss: handleDismissButton,
 					onDismissSwipe: handleDismissSwipe,
 					dragIndex,
+					onAddToPlaylist,
 				}}
 				style={{ height: "100%", width: "100%" }}
 				onPointerMove={handlePointerMove}

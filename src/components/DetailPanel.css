@@ -198,8 +198,14 @@
 	flex: none;
 }
 
+.detail-panel__actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 4px;
+}
+
 .detail-panel__add-queue-btn {
-	width: 100%;
+	flex: 1;
 	padding: 12px;
 	border-radius: 8px;
 	border: none;
@@ -211,7 +217,6 @@
 	transition:
 		background 0.2s,
 		color 0.2s;
-	margin-top: 4px;
 }
 
 .detail-panel__add-queue-btn:hover {
@@ -228,7 +233,7 @@
 }
 
 .detail-panel__add-playlist-btn {
-	width: 100%;
+	flex: 1;
 	padding: 12px;
 	border-radius: 8px;
 	border: none;
@@ -240,7 +245,6 @@
 	transition:
 		background 0.2s,
 		color 0.2s;
-	margin-top: 8px;
 }
 
 .detail-panel__add-playlist-btn:hover {

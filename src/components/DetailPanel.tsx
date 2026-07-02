@@ -180,28 +180,32 @@ export function DetailPanel({
 						{entry.multitracks && <span className="detail-panel__badge">Multitracks</span>}
 						{entry.master && <span className="detail-panel__badge">Master</span>}
 					</div>
-					{onAddToQueue && (
-						<button
-							className={"detail-panel__add-queue-btn" + (addedToQueue ? " detail-panel__add-queue-btn--success" : "")}
-							onPointerDown={(e) => e.stopPropagation()}
-							onClick={() => {
-								onAddToQueue(entry);
-								setAddedToQueue(true);
-								setTimeout(() => setAddedToQueue(false), 1200);
-							}}
-						>
-							{addedToQueue ? "Added to queue" : "Add to Queue"}
-						</button>
-					)}
-					{onAddToPlaylist && (
-						<button
-							className="detail-panel__add-playlist-btn"
-							onPointerDown={(e) => e.stopPropagation()}
-							onClick={() => onAddToPlaylist(entry)}
-						>
-							Save to Playlist
-						</button>
-					)}
+					<div className="detail-panel__actions">
+						{onAddToQueue && (
+							<button
+								className={
+									"detail-panel__add-queue-btn" + (addedToQueue ? " detail-panel__add-queue-btn--success" : "")
+								}
+								onPointerDown={(e) => e.stopPropagation()}
+								onClick={() => {
+									onAddToQueue(entry);
+									setAddedToQueue(true);
+									setTimeout(() => setAddedToQueue(false), 1200);
+								}}
+							>
+								{addedToQueue ? "Added to queue" : "Add to Queue"}
+							</button>
+						)}
+						{onAddToPlaylist && (
+							<button
+								className="detail-panel__add-playlist-btn"
+								onPointerDown={(e) => e.stopPropagation()}
+								onClick={() => onAddToPlaylist(entry)}
+							>
+								Save to Playlist
+							</button>
+						)}
+					</div>
 					{entry.vocalParts > 0 && entry.lyrics && lyrics && (
 						<div className="detail-panel__lyrics" onPointerDown={(e) => e.stopPropagation()}>
 							<pre className="detail-panel__lyrics-text">{lyrics}</pre>

@@ -25,6 +25,7 @@ interface PlaylistDetailPageProps {
 	onSelect: (entry: Entry) => void;
 	selectedEntryId: number | null;
 	panelOpen: boolean;
+	onAddToPlaylist?: (entry: Entry) => void;
 }
 
 function computeRowHeight() {
@@ -47,6 +48,7 @@ export function PlaylistDetailPage({
 	onSelect,
 	selectedEntryId,
 	panelOpen,
+	onAddToPlaylist,
 }: PlaylistDetailPageProps) {
 	const listRef = useListRef(null);
 	const dragStateRef = useRef<DragState | null>(null);
@@ -366,6 +368,7 @@ export function PlaylistDetailPage({
 					dragIndex,
 					swipeIcon: garbageIcon,
 					swipeBgColor: "#d32f2f",
+					onAddToPlaylist,
 				}}
 				style={{ height: "100%", width: "100%" }}
 				onPointerMove={handlePointerMove}

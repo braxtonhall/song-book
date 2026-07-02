@@ -15,6 +15,7 @@ interface HistoryPageProps {
 	onSelect: (entry: Entry) => void;
 	selectedEntryId: number | null;
 	panelOpen: boolean;
+	onAddToPlaylist?: (entry: Entry) => void;
 }
 
 function computeRowHeight() {
@@ -24,7 +25,15 @@ function computeRowHeight() {
 
 const garbageIcon = <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />;
 
-export function HistoryPage({ history, onRemove, onClear, onSelect, selectedEntryId, panelOpen }: HistoryPageProps) {
+export function HistoryPage({
+	history,
+	onRemove,
+	onClear,
+	onSelect,
+	selectedEntryId,
+	panelOpen,
+	onAddToPlaylist,
+}: HistoryPageProps) {
 	const listRef = useListRef(null);
 	const [rowHeight, setRowHeight] = useState(computeRowHeight);
 	const [confirmVisible, setConfirmVisible] = useState(false);
@@ -98,6 +107,7 @@ export function HistoryPage({ history, onRemove, onClear, onSelect, selectedEntr
 					swipeBgColor: "#d32f2f",
 					showClearHeader: true,
 					onClearHistory: handleClearClick,
+					onAddToPlaylist,
 				}}
 				style={{ height: "100%", width: "100%" }}
 			/>
