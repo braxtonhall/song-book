@@ -88,7 +88,6 @@ export function PlaylistPicker({ playlists, entry, onPick, onCreate, onClose }: 
 						value={createName}
 						onChange={(e) => setCreateName(e.target.value)}
 						onKeyDown={handleKeyDown}
-						autoFocus
 					/>
 					<button className="playlist-picker__create-btn" onClick={handleCreate}>
 						Create
