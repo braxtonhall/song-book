@@ -102,7 +102,7 @@ export function EntryRow({
 			const dx = e.clientX - swipeStartRef.current.x;
 			const dy = e.clientY - swipeStartRef.current.y;
 			if (!isSwipingRef.current) {
-				if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+				if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 2) {
 					isSwipingRef.current = true;
 					cancelLongPress();
 					e.currentTarget.setPointerCapture(e.pointerId);
