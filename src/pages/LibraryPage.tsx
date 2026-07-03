@@ -89,6 +89,7 @@ export function LibraryPage({
 	const prevScrollOffset = useRef(0);
 	const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
 	const headerTranslateY = useRef(0);
+	const alphaScrolling = useRef(false);
 
 	const filteredEntries = useMemo(() => {
 		return entries.filter(filter(filterState));
@@ -168,8 +169,13 @@ export function LibraryPage({
 		const delta = scrollOffset - prevScrollOffset.current;
 		prevScrollOffset.current = scrollOffset;
 
-		headerTranslateY.current -= delta;
-		headerTranslateY.current = Math.max(-SORT_HEADER_HEIGHT, Math.min(0, headerTranslateY.current));
+		if (alphaScrolling.current) {
+			headerTranslateY.current = -SORT_HEADER_HEIGHT;
+			alphaScrolling.current = false;
+		} else {
+			headerTranslateY.current -= delta;
+			headerTranslateY.current = Math.max(-SORT_HEADER_HEIGHT, Math.min(0, headerTranslateY.current));
+		}
 
 		const el = stickyHeaderRef.current;
 		if (el) {
@@ -298,6 +304,9 @@ export function LibraryPage({
 					indexEntries={indexEntries}
 					scrollVisible={alphaVisible}
 					currentLabels={currentLabels}
+					beforeScroll={() => {
+						alphaScrolling.current = true;
+					}}
 				/>
 			)}
 		</div>

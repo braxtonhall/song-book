@@ -20,11 +20,13 @@ export function AlphaIndex({
 	indexEntries,
 	scrollVisible,
 	currentLabels,
+	beforeScroll,
 }: {
 	listRef: React.RefObject<ListImperativeAPI>;
 	indexEntries: IndexEntry[];
 	scrollVisible: boolean;
 	currentLabels: Set<string>;
+	beforeScroll?: () => void;
 }) {
 	const [active, setActive] = useState<{ entry: IndexEntry; y: number } | null>(null);
 	const [hovered, setHovered] = useState(false);
@@ -45,11 +47,12 @@ export function AlphaIndex({
 			const entry = entries[clampedIdx];
 			const scrollEntry = entry.present === false ? findNearestPresent(entries, clampedIdx) : entry;
 			if (scrollEntry) {
+				beforeScroll?.();
 				listRef.current?.scrollToRow({ index: scrollEntry.index, align: "start", behavior: "instant" });
 			}
 			setActive({ entry, y: clientY });
 		},
-		[listRef, entries],
+		[listRef, entries, beforeScroll],
 	);
 
 	const handlePointerDown = useCallback(
