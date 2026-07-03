@@ -49,6 +49,17 @@
 	height: 20px;
 }
 
+.list-sticky-header {
+	position: sticky;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 10;
+	background: #121212;
+	transform: translateY(0);
+	pointer-events: auto;
+}
+
 .list-wrapper {
 	flex: 1;
 	min-height: 0;

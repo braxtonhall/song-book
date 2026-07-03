@@ -7,7 +7,7 @@ import { SearchBar } from "../components/SearchBar";
 import { AlphaIndex } from "../components/AlphaIndex";
 import { ListRow } from "../components/ListRow";
 import { DifficultyDots } from "../components/DetailPanel";
-import { SortBy } from "../components/SortHeader";
+import { SortBy, SortHeader } from "../components/SortHeader";
 import { useRowHeight } from "../hooks/useRowHeight";
 import { useDebounce } from "../hooks/useDebounce";
 import { sort } from "../utilities/sort";
@@ -86,6 +86,9 @@ export function LibraryPage({
 	const [alphaVisible, setAlphaVisible] = useState(false);
 	const [visibleRange, setVisibleRange] = useState<{ start: number; end: number } | null>(null);
 	const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+	const prevScrollOffset = useRef(0);
+	const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
+	const headerTranslateY = useRef(0);
 
 	const filteredEntries = useMemo(() => {
 		return entries.filter(filter(filterState));
@@ -159,6 +162,20 @@ export function LibraryPage({
 		},
 		[listRef],
 	);
+
+	const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+		const scrollOffset = event.currentTarget.scrollTop;
+		const delta = scrollOffset - prevScrollOffset.current;
+		prevScrollOffset.current = scrollOffset;
+
+		headerTranslateY.current -= delta;
+		headerTranslateY.current = Math.max(-SORT_HEADER_HEIGHT, Math.min(0, headerTranslateY.current));
+
+		const el = stickyHeaderRef.current;
+		if (el) {
+			el.style.transform = `translateY(${headerTranslateY.current}px)`;
+		}
+	}, []);
 
 	const indexEntries = useMemo<IndexEntry[]>(() => {
 		if (augmentedItems) {
@@ -249,22 +266,31 @@ export function LibraryPage({
 						entries: searchResults,
 						onSelect,
 						headerOffset,
-						sortBy,
-						onSortChange: setSortBy,
 						selectedId: selectedEntryId,
 						panelOpen,
 						onAddToQueue,
 						onAddToPlaylist,
 						onSwipeChange: handleSwipeChange,
-						filteredCount: filteredEntries.length,
-						totalCount: entries.length,
 						augmentedItems,
-						difficultyKey,
-						onDifficultyKeyChange: setDifficultyKey,
 					}}
 					onRowsRendered={handleRowsRendered}
-					style={{ height: "100%", width: "100%" }}
-				/>
+					onScroll={handleScroll}
+					style={{ height: "100%", width: "100%", position: "relative" }}
+				>
+					{!debouncedQuery && (
+						<div className="list-sticky-header" ref={stickyHeaderRef}>
+							<SortHeader
+								style={{ height: SORT_HEADER_HEIGHT }}
+								sortBy={sortBy}
+								onSortChange={setSortBy}
+								filteredCount={filteredEntries.length}
+								totalCount={entries.length}
+								difficultyKey={difficultyKey}
+								onDifficultyKeyChange={setDifficultyKey}
+							/>
+						</div>
+					)}
+				</List>
 			</div>
 			{!query && (
 				<AlphaIndex

@@ -92,6 +92,9 @@ export function ListRow({
 			</div>
 		);
 	}
+	if (headerOffset === 1 && index === 0) {
+		return <div style={style} />;
+	}
 	if (augmentedItems) {
 		const item = augmentedItems[index - headerOffset];
 		if (!item) return null;
