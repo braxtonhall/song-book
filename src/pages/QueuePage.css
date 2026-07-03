@@ -40,3 +40,50 @@
 	border-radius: 1px;
 	z-index: 20;
 }
+
+.queue-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 12px;
+	min-height: 48px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+	background: #121212;
+	flex-shrink: 0;
+}
+
+.queue-header__title {
+	flex: 1;
+	color: #fff;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.queue-header__history-btn {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	border: none;
+	background: none;
+	color: rgba(255, 255, 255, 0.4);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	padding: 0;
+	transition:
+		background 0.15s,
+		color 0.15s;
+}
+
+.queue-header__history-btn:hover {
+	background: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.7);
+}
+
+.queue-header__history-btn svg {
+	width: 20px;
+	height: 20px;
+	fill: currentColor;
+}

@@ -216,7 +216,7 @@ function App() {
 			prevQueueRef.current = queue;
 			return;
 		}
-		if (page === "queue") {
+		if (page === "queue" || page === "history") {
 			prevQueueRef.current = queue;
 			return;
 		}
@@ -516,6 +516,14 @@ function App() {
 		setPage("playlists");
 	}, []);
 
+	const handleNavigateToHistory = useCallback(() => {
+		setPage("history");
+	}, []);
+
+	const handleBackFromHistory = useCallback(() => {
+		setPage("queue");
+	}, []);
+
 	const handleAddAllToQueue = useCallback(
 		(playlistId: string) => {
 			const pl = playlists.find((p) => p.id === playlistId);
@@ -591,7 +599,7 @@ function App() {
 		<>
 			<NavBar
 				landscape={landscape}
-				activePage={page === "playlist-detail" ? "playlists" : page}
+				activePage={page === "playlist-detail" ? "playlists" : page === "history" ? "queue" : page}
 				onNavigate={setPage}
 				queueToasts={queueToasts}
 				partyBadge={partyBadge}
@@ -619,6 +627,7 @@ function App() {
 						selectedEntryId={selectedEntry?.id ?? null}
 						panelOpen={!sheetDismissed}
 						onAddToPlaylist={handleAddToPlaylist}
+						onNavigateToHistory={handleNavigateToHistory}
 					/>
 				)}
 				{page === "history" && (
@@ -630,6 +639,7 @@ function App() {
 						selectedEntryId={selectedEntry?.id ?? null}
 						panelOpen={!sheetDismissed}
 						onAddToPlaylist={handleAddToPlaylist}
+						onBack={handleBackFromHistory}
 					/>
 				)}
 				{page === "party" && (
