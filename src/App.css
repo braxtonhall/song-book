@@ -8,7 +8,7 @@
 .App {
 	display: flex;
 	flex-direction: column;
-	height: 100vh;
+	height: 100dvh;
 	overflow: hidden;
 	background: #121212;
 	transition: padding-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -17,7 +17,7 @@
 
 @media (orientation: portrait) {
 	.App {
-		height: calc(100vh - var(--nav-portrait-height));
+		height: calc(100dvh - var(--nav-portrait-height));
 	}
 }
 
