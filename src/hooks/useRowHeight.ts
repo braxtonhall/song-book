@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
 
-const SEARCH_BAR_HEIGHT = 52;
-
 function computeRowHeight() {
-	const listHeight = window.innerHeight - SEARCH_BAR_HEIGHT;
-	const rows = window.innerWidth > window.innerHeight ? 12 : 8;
-	return Math.round(listHeight / rows);
+	return window.innerWidth > window.innerHeight ? 84 : 96;
 }
 
 export function useRowHeight(): number {

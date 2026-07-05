@@ -95,7 +95,7 @@ export function EntryRow({
 				setContextMenuOpen(true);
 			}, 600);
 		},
-		[observePoint, resetPoints, entry, cancelLongPress],
+		[observePoint, resetPoints, cancelLongPress],
 	);
 
 	const handlePointerMove = useCallback(

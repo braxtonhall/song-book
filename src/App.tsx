@@ -590,7 +590,7 @@ function App() {
 	if (entries === null) {
 		return (
 			<div className="App App--loading">
-				<div className="loading-spinner" />
+				<div className="loading-spinner" role="status" />
 			</div>
 		);
 	}

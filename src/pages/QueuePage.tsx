@@ -27,8 +27,7 @@ interface QueuePageProps {
 }
 
 function computeRowHeight() {
-	const rows = window.innerWidth > window.innerHeight ? 12 : 8;
-	return Math.round(window.innerHeight / rows);
+	return window.innerWidth > window.innerHeight ? 84 : 96;
 }
 
 const EDGE_THRESHOLD = 60;
