@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { RowComponentProps } from "react-window";
 import { useGlobalPointerCancel } from "../hooks/useGlobalPointerCancel";
 import { useVelocityTrace } from "../hooks/useVelocityTrace";
@@ -54,6 +55,7 @@ export function EntryRow({
 	const isSwipingRef = useRef(false);
 	const suppressNextClickRef = useRef(false);
 	const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const [contextMenuOpen, setContextMenuOpen] = useState(false);
 	const { observePoint, resetPoints } = useVelocityTrace(SWIPE_THRESHOLD);
 
 	const cancelLongPress = useCallback(() => {
@@ -76,7 +78,8 @@ export function EntryRow({
 		});
 	}, []);
 
-	const swipeEnabled = !!(onAddToQueue || onDismissSwipe);
+	const swipeEnabled = !!(onAddToQueue || onDismissSwipe || onAddToPlaylist);
+	const isDualAction = !onDismissSwipe && !!(onAddToQueue && onAddToPlaylist);
 	const isDismiss = !!onDismissSwipe;
 
 	const handlePointerDown = useCallback(
@@ -85,15 +88,14 @@ export function EntryRow({
 			isSwipingRef.current = false;
 			resetPoints();
 			observePoint(e);
-			if (onAddToPlaylist) {
-				cancelLongPress();
-				longPressTimerRef.current = setTimeout(() => {
-					longPressTimerRef.current = null;
-					onAddToPlaylist(entry);
-				}, 600);
-			}
+			cancelLongPress();
+			longPressTimerRef.current = setTimeout(() => {
+				longPressTimerRef.current = null;
+				suppressNextClickRef.current = true;
+				setContextMenuOpen(true);
+			}, 600);
 		},
-		[observePoint, resetPoints, onAddToPlaylist, entry, cancelLongPress],
+		[observePoint, resetPoints, entry, cancelLongPress],
 	);
 
 	const handlePointerMove = useCallback(
@@ -147,8 +149,16 @@ export function EntryRow({
 								setCrossedThreshold(false);
 							}, 250);
 						});
-					} else if (onAddToQueue) {
-						onAddToQueue(entry);
+					} else {
+						if (dx > 0 && onAddToQueue) {
+							onAddToQueue(entry);
+						} else if (dx < 0 && onAddToPlaylist) {
+							onAddToPlaylist(entry);
+						} else if (onAddToQueue) {
+							onAddToQueue(entry);
+						} else if (onAddToPlaylist) {
+							onAddToPlaylist(entry);
+						}
 						snapBack();
 					}
 				} else {
@@ -157,10 +167,22 @@ export function EntryRow({
 				}
 			}
 		},
-		[entry, index, onAddToQueue, onSwipeChange, onDismissSwipe, snapBack, observePoint, cancelLongPress],
+		[
+			entry,
+			index,
+			onAddToQueue,
+			onAddToPlaylist,
+			onSwipeChange,
+			onDismissSwipe,
+			snapBack,
+			observePoint,
+			cancelLongPress,
+		],
 	);
 
 	useGlobalPointerCancel(handlePointerUp);
+
+	const closeContextMenu = useCallback(() => setContextMenuOpen(false), []);
 
 	const handlePointerCancel = useCallback(() => {
 		cancelLongPress();
@@ -190,101 +212,171 @@ export function EntryRow({
 
 	const contentTransform = swipeOffset !== 0 || isSnapping ? `translateX(${swipeOffset}px)` : undefined;
 
-	const swipeIcon =
-		customSwipeIcon ||
-		(isDismiss ? (
-			<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-		) : (
-			<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-		));
+	const dismissIcon = (
+		<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+	);
+	const plusIcon = <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />;
+	const queueWithPlusIcon = (
+		<>
+			<path
+				d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"
+				fill="currentColor"
+			/>
+			<circle cx="5" cy="5" r="5" fill="#ffb300" />
+			<path d="M2.5 5h5M5 2.5v5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+		</>
+	);
+	const playlistWithPlusIcon = (
+		<>
+			<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor" />
+			<circle cx="5" cy="5" r="5" fill="#ffb300" />
+			<path d="M2.5 5h5M5 2.5v5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+		</>
+	);
+
+	const leftSwipeIcon = customSwipeIcon ?? (isDismiss ? dismissIcon : isDualAction ? queueWithPlusIcon : plusIcon);
+	const rightSwipeIcon = customSwipeIcon ?? (isDismiss ? dismissIcon : isDualAction ? playlistWithPlusIcon : plusIcon);
 
 	const swipeBgColor = customSwipeBgColor ?? "#ffb300";
 	const swipeBgIconColor = customSwipeBgColor ? "#fff" : crossedThreshold ? "#1a1100" : "#fff";
 
 	return (
-		<div
-			{...ariaAttributes}
-			style={style}
-			className={["entry-row", isDragging ? "entry-row--dragging" : ""].filter(Boolean).join(" ")}
-			onClick={handleClick}
-		>
+		<>
 			<div
-				className="entry-row__swipe-bg"
-				style={{
-					backgroundColor: crossedThreshold ? swipeBgColor : "transparent",
-				}}
+				{...ariaAttributes}
+				style={style}
+				className={["entry-row", isDragging ? "entry-row--dragging" : ""].filter(Boolean).join(" ")}
+				onClick={handleClick}
 			>
-				<svg
-					className="entry-row__swipe-icon"
-					style={{ opacity: leftIconOpacity, color: swipeBgIconColor }}
-					viewBox="0 0 24 24"
-					width="24"
-					height="24"
-					fill="currentColor"
-					aria-hidden="true"
+				<div
+					className="entry-row__swipe-bg"
+					style={{
+						backgroundColor: crossedThreshold ? swipeBgColor : "transparent",
+					}}
 				>
-					{swipeIcon}
-				</svg>
-				<svg
-					className="entry-row__swipe-icon"
-					style={{ opacity: rightIconOpacity, color: swipeBgIconColor }}
-					viewBox="0 0 24 24"
-					width="24"
-					height="24"
-					fill="currentColor"
-					aria-hidden="true"
-				>
-					{swipeIcon}
-				</svg>
-			</div>
-			<div
-				className={["entry-row__content", isSnapping ? "entry-row__content--swiping" : ""].filter(Boolean).join(" ")}
-				style={contentTransform ? { transform: contentTransform } : undefined}
-				onPointerDown={swipeEnabled ? handlePointerDown : undefined}
-				onPointerMove={swipeEnabled ? handlePointerMove : undefined}
-				onPointerUp={swipeEnabled ? handlePointerUp : undefined}
-				onPointerCancel={swipeEnabled ? handlePointerCancel : undefined}
-			>
-				{showDragHandle && (
-					<div
-						className="entry-row__drag-handle"
-						onPointerDown={(e) => {
-							e.stopPropagation();
-							onDragStart?.(index, e);
-						}}
+					<svg
+						className="entry-row__swipe-icon"
+						style={{ opacity: leftIconOpacity, color: swipeBgIconColor }}
+						viewBox="0 0 24 24"
+						width="24"
+						height="24"
+						fill="currentColor"
+						aria-hidden="true"
 					>
-						<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-							<path d="M3 15h18v-2H3v2zm0 4h18v-2H3v2zm0-8h18V9H3v2zm0-6v2h18V5H3z" />
-						</svg>
+						{leftSwipeIcon}
+					</svg>
+					<svg
+						className="entry-row__swipe-icon"
+						style={{ opacity: rightIconOpacity, color: swipeBgIconColor }}
+						viewBox="0 0 24 24"
+						width="24"
+						height="24"
+						fill="currentColor"
+						aria-hidden="true"
+					>
+						{rightSwipeIcon}
+					</svg>
+				</div>
+				<div
+					className={["entry-row__content", isSnapping ? "entry-row__content--swiping" : ""].filter(Boolean).join(" ")}
+					style={contentTransform ? { transform: contentTransform } : undefined}
+					onPointerDown={swipeEnabled ? handlePointerDown : undefined}
+					onPointerMove={swipeEnabled ? handlePointerMove : undefined}
+					onPointerUp={swipeEnabled ? handlePointerUp : undefined}
+					onPointerCancel={swipeEnabled ? handlePointerCancel : undefined}
+				>
+					{showDragHandle && (
+						<div
+							className="entry-row__drag-handle"
+							onPointerDown={(e) => {
+								e.stopPropagation();
+								onDragStart?.(index, e);
+							}}
+						>
+							<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+								<path d="M3 15h18v-2H3v2zm0 4h18v-2H3v2zm0-8h18V9H3v2zm0-6v2h18V5H3z" />
+							</svg>
+						</div>
+					)}
+					<div className="entry-avatar" style={{ backgroundColor: hex }}>
+						{albumArt && (
+							<img
+								src={`https://braxtonhall.ca/song-book-resources/art/${albumArt}.png`}
+								alt={`${albumName} album art`}
+								draggable={false}
+							/>
+						)}
 					</div>
-				)}
-				<div className="entry-avatar" style={{ backgroundColor: hex }}>
-					{albumArt && (
-						<img
-							src={`https://braxtonhall.ca/song-book-resources/art/${albumArt}.png`}
-							alt={`${albumName} album art`}
-							draggable={false}
-						/>
+					<div className="entry-text">
+						<span className={`entry-title${isSelected ? " entry-title--selected" : ""}`}>{song}</span>
+						<span className="entry-artist">{artist}</span>
+						{subtitles?.[index] && <span className="entry-subtitle">{subtitles[index]}</span>}
+					</div>
+					{showDismissButton && (
+						<button
+							className="entry-row__dismiss-btn"
+							onClick={(e) => {
+								e.stopPropagation();
+								onDismiss?.(index);
+							}}
+							aria-label={`Remove ${song} from queue`}
+						>
+							×
+						</button>
 					)}
 				</div>
-				<div className="entry-text">
-					<span className={`entry-title${isSelected ? " entry-title--selected" : ""}`}>{song}</span>
-					<span className="entry-artist">{artist}</span>
-					{subtitles?.[index] && <span className="entry-subtitle">{subtitles[index]}</span>}
-				</div>
-				{showDismissButton && (
-					<button
-						className="entry-row__dismiss-btn"
-						onClick={(e) => {
-							e.stopPropagation();
-							onDismiss?.(index);
-						}}
-						aria-label={`Remove ${song} from queue`}
-					>
-						×
-					</button>
-				)}
 			</div>
-		</div>
+			{contextMenuOpen &&
+				ReactDOM.createPortal(
+					<div className="entry-context-menu__overlay" onClick={closeContextMenu}>
+						<div className="entry-context-menu__box" onClick={(e) => e.stopPropagation()}>
+							<div className="entry-context-menu__song-info">
+								<div className="entry-context-menu__song-art" style={{ backgroundColor: hex }}>
+									{albumArt && <img src={`https://braxtonhall.ca/song-book-resources/art/${albumArt}.png`} alt="" />}
+								</div>
+								<div className="entry-context-menu__song-name">{song}</div>
+							</div>
+							<div className="entry-context-menu__actions">
+								{onAddToQueue && (
+									<button
+										className="entry-context-menu__item"
+										onClick={() => {
+											onAddToQueue(entry);
+											closeContextMenu();
+										}}
+									>
+										<div className="entry-context-menu__item-icon">
+											<svg viewBox="0 0 24 24">
+												<path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+											</svg>
+										</div>
+										<span className="entry-context-menu__item-label">Add to Queue</span>
+									</button>
+								)}
+								{onAddToPlaylist && (
+									<button
+										className="entry-context-menu__item"
+										onClick={() => {
+											onAddToPlaylist(entry);
+											closeContextMenu();
+										}}
+									>
+										<div className="entry-context-menu__item-icon">
+											<svg viewBox="0 0 24 24">
+												<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+											</svg>
+										</div>
+										<span className="entry-context-menu__item-label">Add to Playlist</span>
+									</button>
+								)}
+							</div>
+							<button className="entry-context-menu__cancel" onClick={closeContextMenu}>
+								Cancel
+							</button>
+						</div>
+					</div>,
+					document.body,
+				)}
+		</>
 	);
 }
