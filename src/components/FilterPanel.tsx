@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback, Dispatch, SetStateAction } from "react";
+import React, { useState, useRef, useMemo, useCallback, useEffect, Dispatch, SetStateAction } from "react";
 import { createPortal } from "react-dom";
 import { Entry, FilterState, DEFAULT_FILTER_STATE, InstrumentKey, isFilterActive } from "../types";
 import { Panel } from "./Panel";
@@ -332,6 +332,31 @@ function FilterSection({
 	);
 }
 
+function AllCheckbox({
+	allSelected,
+	someSelected,
+	onToggle,
+}: {
+	allSelected: boolean;
+	someSelected: boolean;
+	onToggle: () => void;
+}) {
+	const ref = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		if (ref.current) {
+			ref.current.indeterminate = someSelected;
+		}
+	}, [someSelected]);
+
+	return (
+		<label className="checklist__item checklist__item--all">
+			<input type="checkbox" className="checklist__checkbox" ref={ref} checked={allSelected} onChange={onToggle} />
+			<span className="checklist__text">All</span>
+		</label>
+	);
+}
+
 export function FilterPanel({
 	dismissed,
 	onDismiss,
@@ -484,6 +509,16 @@ export function FilterPanel({
 					onToggle={toggleSection}
 				>
 					<div className="checklist" onPointerDown={(e) => e.stopPropagation()}>
+						<AllCheckbox
+							allSelected={genres.length > 0 && filterState.genres.length === genres.length}
+							someSelected={filterState.genres.length > 0 && filterState.genres.length < genres.length}
+							onToggle={() =>
+								onFilterChange((prev) => ({
+									...prev,
+									genres: filterState.genres.length === genres.length ? [] : genres.map((g) => g.id),
+								}))
+							}
+						/>
 						{genres.map((item) => (
 							<label key={item.id} className="checklist__item">
 								<input
@@ -514,6 +549,16 @@ export function FilterPanel({
 					onToggle={toggleSection}
 				>
 					<div className="checklist" onPointerDown={(e) => e.stopPropagation()}>
+						<AllCheckbox
+							allSelected={sources.length > 0 && filterState.sources.length === sources.length}
+							someSelected={filterState.sources.length > 0 && filterState.sources.length < sources.length}
+							onToggle={() =>
+								onFilterChange((prev) => ({
+									...prev,
+									sources: filterState.sources.length === sources.length ? [] : sources.map((s) => s.id),
+								}))
+							}
+						/>
 						{sources.map((source) => (
 							<label key={source.id} className="checklist__item">
 								<input
@@ -544,6 +589,16 @@ export function FilterPanel({
 					onToggle={toggleSection}
 				>
 					<div className="checklist" onPointerDown={(e) => e.stopPropagation()}>
+						<AllCheckbox
+							allSelected={decades.length > 0 && filterState.decades.length === decades.length}
+							someSelected={filterState.decades.length > 0 && filterState.decades.length < decades.length}
+							onToggle={() =>
+								onFilterChange((prev) => ({
+									...prev,
+									decades: filterState.decades.length === decades.length ? [] : [...decades],
+								}))
+							}
+						/>
 						{decades.map((decade) => (
 							<label key={decade} className="checklist__item">
 								<input
