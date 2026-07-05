@@ -158,22 +158,25 @@ export function DetailPanel({
 
 					<div className="detail-panel__song-info">
 						<h2 className="detail-panel__title">{entry.song}</h2>
-						<p className="detail-panel__artist">{entry.artist}</p>
-						<p className="detail-panel__album">
+						<p className="detail-panel__artist">
+							{entry.artist}
+							{entry.artist && entry.albumName ? " · " : ""}
 							{entry.albumName}
-							{entry.year && entry.albumName ? " · " : ""}
-							{entry.year}
 						</p>
 					</div>
 
-					<div className="detail-panel__meta">
+					<div className="detail-panel__song-meta">
+						{entry.year && <span>{entry.year}</span>}
 						{entry.genre && <span>{getGenre(entry.genre)}</span>}
+						<span>{formatDuration(entry.duration)}</span>
+					</div>
+
+					<div className="detail-panel__meta">
 						{entry.source && <span>{source.name}</span>}
 						{entry.author && <span>{entry.author}</span>}
 					</div>
 
 					<div className="detail-panel__badges">
-						<span className="detail-panel__badge detail-panel__badge--duration">{formatDuration(entry.duration)}</span>
 						{entry.rating > 0 && (
 							<span className="detail-panel__badge">{RATING_LABELS[entry.rating] || "Unrated"}</span>
 						)}

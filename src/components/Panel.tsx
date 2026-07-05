@@ -29,6 +29,8 @@ export function Panel({
 	dismissedRef.current = dismissed;
 	const onRestoreRef = useRef(onRestore);
 	onRestoreRef.current = onRestore;
+	const isLandscapeRef = useRef(isLandscape);
+	isLandscapeRef.current = isLandscape;
 
 	const MIN_TOP = 80;
 	const DISMISS_THRESHOLD = 0.85;
@@ -68,12 +70,12 @@ export function Panel({
 	useEffect(() => {
 		const handler = () => {
 			if (!panelRef.current) return;
-			if (isLandscape) {
+			if (isLandscapeRef.current) {
 				panelRef.current.style.top = "";
 				panelRef.current.style.transition = "";
 				return;
 			}
-			if (dismissed) {
+			if (dismissedRef.current) {
 				panelRef.current.style.top = dismissedTop() + "px";
 			} else {
 				const current = parseFloat(panelRef.current.style.top) || defaultTop();
@@ -83,7 +85,7 @@ export function Panel({
 		};
 		window.addEventListener("resize", handler);
 		return () => window.removeEventListener("resize", handler);
-	}, [dismissed, isLandscape]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	useEffect(() => {
 		if (!panelRef.current) return;
