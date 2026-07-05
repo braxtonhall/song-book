@@ -1,9 +1,36 @@
 import { useState, useEffect, useCallback } from "react";
 import { Entry } from "../types";
 import { Playlist } from "../partyTypes";
-import { getAll, put, remove } from "../utilities/indexeddb";
+import { getAll, put, remove, clear } from "../utilities/indexeddb";
 
 const STORE = "playlists";
+
+export async function getPlaylists(): Promise<Playlist[]> {
+	return getAll<Playlist>(STORE);
+}
+
+export async function importPlaylists(imported: Playlist[], mode: "add" | "replace") {
+	if (mode === "replace") {
+		await clear(STORE);
+		playlists = [...imported];
+		for (const pl of playlists) {
+			await put(STORE, pl);
+		}
+	} else {
+		const existingIds = new Set(playlists.map((p) => p.id));
+		for (const pl of imported) {
+			const resolved = { ...pl };
+			if (existingIds.has(resolved.id)) {
+				resolved.id = crypto.randomUUID();
+			}
+			existingIds.add(resolved.id);
+			await put(STORE, resolved);
+			playlists = [...playlists, resolved];
+		}
+	}
+	loaded = true;
+	notify();
+}
 
 let playlists: Playlist[] = [];
 let loaded = false;
