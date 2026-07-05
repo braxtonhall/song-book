@@ -50,7 +50,7 @@
 }
 
 .panel__content {
-	padding: 8px 20px 32px;
+	padding: 8px 20px 80px;
 	overflow-y: auto;
 	touch-action: none;
 	flex: 1;
